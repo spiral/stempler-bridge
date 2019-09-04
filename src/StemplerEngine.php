@@ -177,7 +177,7 @@ final class StemplerEngine implements EngineInterface
             try {
                 $result = $this->getBuilder($context)->compile($path);
             } catch (\Throwable $e) {
-                throw new CompileException($e->getMessage(), $e->getCode(), $e);
+                throw new CompileException($e);
             }
 
             $sourceMap = $result->makeSourceMap($this->getBuilder($context)->getLoader());
