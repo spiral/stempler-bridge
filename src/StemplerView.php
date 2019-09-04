@@ -20,7 +20,7 @@ use Spiral\Views\ViewInterface;
 abstract class StemplerView implements ViewInterface
 {
     /** @var ContainerInterface */
-    private $container;
+    protected $container;
 
     /** @var string */
     protected $sourcemap;
