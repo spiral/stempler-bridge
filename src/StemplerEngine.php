@@ -14,6 +14,7 @@ use Spiral\Stempler\Compiler\Renderer\CoreRenderer;
 use Spiral\Stempler\Compiler\Renderer\HTMLRenderer;
 use Spiral\Stempler\Compiler\Renderer\PHPRenderer;
 use Spiral\Stempler\Compiler\Result;
+use Spiral\Stempler\Compiler\SourceMap;
 use Spiral\Stempler\Directive\DirectiveInterface;
 use Spiral\Stempler\Lexer\Grammar\DynamicGrammar;
 use Spiral\Stempler\Lexer\Grammar\HTMLGrammar;
@@ -91,7 +92,7 @@ final class StemplerEngine implements EngineInterface
         $engine = clone $this;
         $engine->loader = $loader->withExtension(static::EXTENSION);
 
-        $builder = new Builder(new StemplerLoader($loader, $this->processors));
+        $builder = new Builder(new StemplerLoader($engine->loader, $this->processors));
 
         // we are using fixed set of grammars and renderers for now
         $builder->getParser()->addSyntax(new PHPGrammar(), new PHPSyntax());
@@ -114,12 +115,11 @@ final class StemplerEngine implements EngineInterface
         $builder->addVisitor(new ExtendsParent($builder), Builder::STAGE_TRANSFORM);
 
         // php conversion
-        $dynamic = new DynamicToPHP();
-        foreach ($this->directives as $directive) {
-            $dynamic->addDirective($directive);
-        }
-        $builder->addVisitor($dynamic, Builder::STAGE_FINALIZE);
         $builder->addVisitor(new StackCollector(), Builder::STAGE_FINALIZE);
+        $builder->addVisitor(
+            new DynamicToPHP(DynamicToPHP::DEFAULT_FILTER, $this->directives),
+            Builder::STAGE_FINALIZE
+        );
 
         $engine->builder = $builder;
 
@@ -177,13 +177,14 @@ final class StemplerEngine implements EngineInterface
             try {
                 $result = $this->getBuilder($context)->compile($path);
             } catch (\Throwable $e) {
-                throw new CompileException($e->getCode(), $e->getMessage(), $e);
+                throw new CompileException($e->getMessage(), $e->getCode(), $e);
             }
 
-            $compiled = $this->compileClass($class, $result);
+            $sourceMap = $result->makeSourceMap($this->getBuilder($context)->getLoader());
+            $compiled = $this->compileClass($class, $result, $sourceMap);
 
             if ($this->cache !== null) {
-                $this->cache->write($key, $compiled, $result->getPaths());
+                $this->cache->write($key, $compiled, $sourceMap->getPaths());
                 $this->cache->load($key);
             }
 
@@ -223,13 +224,37 @@ final class StemplerEngine implements EngineInterface
     }
 
     /**
-     * @param string $class
-     * @param Result $result
+     * @param string    $class
+     * @param Result    $result
+     * @param SourceMap $sm
      * @return string
      */
-    private function compileClass(string $class, Result $result): string
+    private function compileClass(string $class, Result $result, SourceMap $sm): string
     {
-        return $result->getContent();
+        $template = '<?php class %s extends \Spiral\Stempler\StemplerView {            
+            public function render(array $data=[]): string {
+                ob_start();
+                $__outputLevel__ = ob_get_level();
+
+                try {
+                    Spiral\Core\ContainerScope::runScope($this->container, function () use ($data) {
+                        extract($data, EXTR_OVERWRITE);
+                        ?>%s<?php
+                    });
+                } catch (\Throwable $e) {
+                    while (ob_get_level() >= $__outputLevel__) { ob_end_clean(); }
+                    throw $this->mapException($data, $e, 8);                    
+                } finally {
+                    while (ob_get_level() > $__outputLevel__) { ob_end_clean(); }
+                }
+
+                return ob_get_clean(); 
+            }
+            
+            protected $sourcemap = %s;
+        }';
+
+        return sprintf($template, $class, $result->getContent(), var_export($sm->serialize(), true));
     }
 
     /**
@@ -239,13 +264,6 @@ final class StemplerEngine implements EngineInterface
      */
     private function className(ViewSource $source, ContextInterface $context): string
     {
-        $key = sprintf(
-            "%s.%s.%s",
-            $source->getNamespace(),
-            $source->getName(),
-            $context->getID()
-        );
-
         return $this->classPrefix . $this->cacheKey($source, $context);
     }
 

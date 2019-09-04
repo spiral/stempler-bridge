@@ -114,15 +114,6 @@ final class StemplerBootloader extends Bootloader implements DependedInterface
         ViewsConfig $viewConfig,
         FactoryInterface $factory
     ): StemplerEngine {
-        $directives = [];
-        foreach ($config->getDirectives() as $directive) {
-            if ($directive instanceof Autowire) {
-                $directive = $directive->resolve($factory);
-            }
-
-            $directives[] = $directive;
-        }
-
         $processors = [];
         foreach ($config->getProcessors() as $processor) {
             if ($processor instanceof Autowire) {
@@ -132,11 +123,20 @@ final class StemplerBootloader extends Bootloader implements DependedInterface
             $processors[] = $processor;
         }
 
+        $directives = [];
+        foreach ($config->getDirectives() as $directive) {
+            if ($directive instanceof Autowire) {
+                $directive = $directive->resolve($factory);
+            }
+
+            $directives[] = $directive;
+        }
+
         $cache = null;
         if ($viewConfig->isCacheEnabled()) {
             $cache = new StemplerCache($viewConfig->getCacheDirectory());
         }
 
-        return new StemplerEngine($container, $cache, $directives, $processors);
+        return new StemplerEngine($container, $cache, $processors, $directives);
     }
 }

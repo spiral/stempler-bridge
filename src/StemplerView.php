@@ -10,16 +10,20 @@ declare(strict_types=1);
 namespace Spiral\Stempler;
 
 use Psr\Container\ContainerInterface;
-use Spiral\Core\ContainerScope;
+use Spiral\Stempler\Compiler\SourceMap;
+use Spiral\Views\Exception\RenderException;
 use Spiral\Views\ViewInterface;
 
 /**
  * Stempler views are executed within global container scope.
  */
-final class StemplerView implements ViewInterface
+abstract class StemplerView implements ViewInterface
 {
     /** @var ContainerInterface */
     private $container;
+
+    /** @var string */
+    protected $sourcemap;
 
     /**
      * @param ContainerInterface $container
@@ -30,16 +34,30 @@ final class StemplerView implements ViewInterface
     }
 
     /**
-     * @inheritDoc
+     * @param array      $data
+     * @param \Throwable $e
+     * @param int        $lineOffset
+     * @return RenderException|\Throwable
      */
-    public function render(array $data = []): string
+    protected function mapException(array $data, \Throwable $e, int $lineOffset = 0)
     {
-        return ContainerScope::runScope($this->container, function () {
+        $sourcemap = new SourceMap();
+        $sourcemap->unserialize($this->sourcemap);
 
-            // todo: need render, need exception handling
-            // todo: need other stuff
+        $stack = $sourcemap->getStack($e->getLine() - $lineOffset);
 
-            return 'OK';
-        });
+        foreach ($stack as &$item) {
+            $item['class'] = StemplerView::class;
+            $item['type'] = '->';
+            $item['function'] = 'render';
+            $item['args'] = [$data];
+
+            unset($item['grammar'], $item);
+        }
+
+        $e = new RenderException($e);
+        $e->setUserTrace($stack);
+
+        return $e;
     }
 }
