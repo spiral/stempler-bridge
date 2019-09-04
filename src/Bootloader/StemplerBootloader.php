@@ -102,12 +102,14 @@ final class StemplerBootloader extends Bootloader implements DependedInterface
     }
 
     /**
-     * @param StemplerConfig   $config
-     * @param ViewsConfig      $viewConfig
-     * @param FactoryInterface $factory
+     * @param ContainerInterface $container
+     * @param StemplerConfig     $config
+     * @param ViewsConfig        $viewConfig
+     * @param FactoryInterface   $factory
      * @return StemplerEngine
      */
     protected function stemplerEngine(
+        ContainerInterface $container,
         StemplerConfig $config,
         ViewsConfig $viewConfig,
         FactoryInterface $factory
@@ -135,6 +137,6 @@ final class StemplerBootloader extends Bootloader implements DependedInterface
             $cache = new StemplerCache($viewConfig->getCacheDirectory());
         }
 
-        return new StemplerEngine($cache, $directives, $processors);
+        return new StemplerEngine($container, $cache, $directives, $processors);
     }
 }
