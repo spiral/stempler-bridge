@@ -34,11 +34,11 @@ class CacheTest extends BaseTest
     {
         $this->assertCount(0, $this->files->getFiles(__DIR__ . '/../cache/', '*.php'));
 
-        $twig = $this->getStempler();
-        $this->assertSame('test', $twig->get('test', new ViewContext())->render([]));
+        $s = $this->getStempler();
+        $this->assertSame('test', $s->get('test', new ViewContext())->render([]));
         $this->assertCount(2, $this->files->getFiles(__DIR__ . '/../cache/', '*.php'));
 
-        $twig->reset('test', new ViewContext());
+        $s->reset('test', new ViewContext());
         $this->assertCount(0, $this->files->getFiles(__DIR__ . '/../cache/', '*.php'));
     }
 }

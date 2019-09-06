@@ -1,0 +1,1 @@
+@inject('test', Spiral\Stempler\Tests\testInjection::class){{ $test->name }}

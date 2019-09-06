@@ -160,7 +160,7 @@ final class StemplerEngine implements EngineInterface
     public function getBuilder(ContextInterface $context): Builder
     {
         if ($this->builder === null) {
-            throw new EngineException("No associated environment found.");
+            throw new EngineException("No associated builder found");
         }
 
         // since view source support pre-processing we must ensure that context is always set
