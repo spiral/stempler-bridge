@@ -275,7 +275,7 @@ final class StemplerEngine implements EngineInterface
                     });
                 } catch (\Throwable $e) {
                     while (ob_get_level() >= $__outputLevel__) { ob_end_clean(); }
-                    throw $this->mapException($data, $e, 8);                    
+                    throw $this->mapException(8, $e, $data);                    
                 } finally {
                     while (ob_get_level() > $__outputLevel__) { ob_end_clean(); }
                 }

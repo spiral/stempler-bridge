@@ -11,7 +11,6 @@ namespace Spiral\Stempler;
 
 use Psr\Container\ContainerInterface;
 use Spiral\Views\ContextInterface;
-use Spiral\Views\Exception\RenderException;
 use Spiral\Views\ViewInterface;
 use Spiral\Views\ViewSource;
 
@@ -46,12 +45,12 @@ abstract class StemplerView implements ViewInterface
     }
 
     /**
-     * @param array      $data
-     * @param \Throwable $e
      * @param int        $lineOffset
-     * @return RenderException|\Throwable
+     * @param \Throwable $e
+     * @param array      $data
+     * @return \Throwable
      */
-    protected function mapException(array $data, \Throwable $e, int $lineOffset = 0)
+    protected function mapException(int $lineOffset, \Throwable $e, array $data)
     {
         $sourcemap = $this->engine->makeSourceMap(
             sprintf("%s:%s", $this->view->getNamespace(), $this->view->getName()),
@@ -62,26 +61,8 @@ abstract class StemplerView implements ViewInterface
             return $e;
         }
 
-        $userStack = [];
-        foreach ($sourcemap->getStack($e->getLine() - $lineOffset) as $stack) {
-            $userStack[] = [
-                'file'     => $stack['file'],
-                'line'     => $stack['line'],
-                'class'    => static::class,
-                'type'     => '->',
-                'function' => 'render',
-                'args'     => [$data]
-            ];
+        $mapper = new ExceptionMapper($sourcemap, $lineOffset);
 
-            if ($stack['file'] === $this->view->getFilename()) {
-                // no need to jump over root template
-                break;
-            }
-        }
-
-        $e = new RenderException($e);
-        $e->setUserTrace($userStack);
-
-        return $e;
+        return $mapper->mapException($e, static::class, $this->view->getFilename(), $data);
     }
 }
