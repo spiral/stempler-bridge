@@ -191,7 +191,10 @@ final class StemplerEngine implements EngineInterface
             $compiled = $this->compileClass($class, $result);
 
             if ($this->cache !== null) {
-                $this->cache->write($key, $compiled, $result->getPaths());
+                $this->cache->write($key, $compiled, array_map(function ($path) {
+                    return $this->getLoader()->load($path)->getFilename();
+                }, $result->getPaths()));
+
                 $this->cache->load($key);
             }
 
