@@ -31,6 +31,14 @@ class DirectiveTest extends BaseTest
         $this->assertSame('abc', $s->get('directive', new ViewContext())->render());
     }
 
+    public function testRenderDirectiveAsArray()
+    {
+        $s = $this->getStempler();
+        $this->container->bind(testInjection::class, new testInjection("abc"));
+
+        $this->assertSame('abc', $s->get('directive2', new ViewContext())->render());
+    }
+
     /**
      * @expectedException \Spiral\Views\Exception\CompileException
      */
