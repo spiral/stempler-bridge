@@ -62,21 +62,25 @@ abstract class StemplerView implements ViewInterface
             return $e;
         }
 
-        // todo: cut till parent
-        $stack = $sourcemap->getStack($e->getLine() - $lineOffset);
+        $userStack = [];
+        foreach ($sourcemap->getStack($e->getLine() - $lineOffset) as $stack) {
+            $userStack[] = [
+                'file'     => $stack['file'],
+                'line'     => $stack['line'],
+                'class'    => static::class,
+                'type'     => '->',
+                'function' => 'render',
+                'args'     => [$data]
+            ];
 
-        // todo: trim parent
-        foreach ($stack as &$item) {
-            $item['class'] = StemplerView::class;
-            $item['type'] = '->';
-            $item['function'] = 'render';
-            $item['args'] = [$data];
-
-            unset($item['grammar'], $item);
+            if ($stack['file'] === $this->view->getFilename()) {
+                // no need to jump over root template
+                break;
+            }
         }
 
         $e = new RenderException($e);
-        $e->setUserTrace($stack);
+        $e->setUserTrace($userStack);
 
         return $e;
     }

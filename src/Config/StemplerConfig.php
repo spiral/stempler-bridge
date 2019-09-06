@@ -20,7 +20,7 @@ final class StemplerConfig extends InjectableConfig
     /** @var array */
     protected $config = [
         'directives' => [],
-        'processors' => []
+        'processors' => [],
     ];
 
     /**

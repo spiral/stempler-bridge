@@ -16,6 +16,7 @@ use Spiral\Stempler\Compiler\Renderer\PHPRenderer;
 use Spiral\Stempler\Compiler\Result;
 use Spiral\Stempler\Compiler\SourceMap;
 use Spiral\Stempler\Directive\DirectiveInterface;
+use Spiral\Stempler\Finalizer\TrimLines;
 use Spiral\Stempler\Lexer\Grammar\DynamicGrammar;
 use Spiral\Stempler\Lexer\Grammar\HTMLGrammar;
 use Spiral\Stempler\Lexer\Grammar\InlineGrammar;
@@ -129,6 +130,9 @@ final class StemplerEngine implements EngineInterface
             new DynamicToPHP(DynamicToPHP::DEFAULT_FILTER, $this->directives),
             Builder::STAGE_FINALIZE
         );
+
+        // smaller views
+        $builder->addVisitor(new TrimLines(), Builder::STAGE_FINALIZE);
 
         $engine->builder = $builder;
 

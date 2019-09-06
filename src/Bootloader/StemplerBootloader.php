@@ -16,6 +16,7 @@ use Spiral\Bootloader\Views\ViewsBootloader;
 use Spiral\Config\ConfiguratorInterface;
 use Spiral\Config\Patch\Append;
 use Spiral\Core\Container\Autowire;
+use Spiral\Core\Container\SingletonInterface;
 use Spiral\Core\FactoryInterface;
 use Spiral\Stempler\Config\StemplerConfig;
 use Spiral\Stempler\Directive\ConditionalDirective;
@@ -25,15 +26,13 @@ use Spiral\Stempler\Directive\LoopDirective;
 use Spiral\Stempler\StemplerCache;
 use Spiral\Stempler\StemplerEngine;
 use Spiral\Translator\Views\LocaleProcessor;
-use Spiral\Twig\TwigCache;
-use Spiral\Twig\TwigEngine;
 use Spiral\Views\Config\ViewsConfig;
 use Spiral\Views\Processor\ContextProcessor;
 
 /**
  * Initiates stempler engine, it's cache and directives.
  */
-final class StemplerBootloader extends Bootloader implements DependedInterface
+final class StemplerBootloader extends Bootloader implements DependedInterface, SingletonInterface
 {
     const SINGLETONS = [
         StemplerEngine::class => [self::class, 'stemplerEngine']
@@ -137,6 +136,11 @@ final class StemplerBootloader extends Bootloader implements DependedInterface
             $cache = new StemplerCache($viewConfig->getCacheDirectory());
         }
 
-        return new StemplerEngine($container, $cache, $processors, $directives);
+        return new StemplerEngine(
+            $container,
+            $cache,
+            $processors,
+            $directives
+        );
     }
 }
