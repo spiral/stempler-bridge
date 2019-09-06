@@ -10,27 +10,39 @@ declare(strict_types=1);
 namespace Spiral\Stempler;
 
 use Psr\Container\ContainerInterface;
-use Spiral\Stempler\Compiler\SourceMap;
+use Spiral\Views\ContextInterface;
 use Spiral\Views\Exception\RenderException;
 use Spiral\Views\ViewInterface;
+use Spiral\Views\ViewSource;
 
 /**
  * Stempler views are executed within global container scope.
  */
 abstract class StemplerView implements ViewInterface
 {
+    /** @var StemplerEngine */
+    protected $engine;
+
+    /** @var ViewSource */
+    protected $view;
+
+    /** @var ContextInterface */
+    protected $context;
+
     /** @var ContainerInterface */
     protected $container;
 
-    /** @var string */
-    protected $sourcemap;
-
     /**
-     * @param ContainerInterface $container
+     * @param StemplerEngine   $engine
+     * @param ViewSource       $view
+     * @param ContextInterface $context
      */
-    public function __construct(ContainerInterface $container)
+    public function __construct(StemplerEngine $engine, ViewSource $view, ContextInterface $context)
     {
-        $this->container = $container;
+        $this->engine = $engine;
+        $this->view = $view;
+        $this->context = $context;
+        $this->container = $engine->getContainer();
     }
 
     /**
@@ -41,11 +53,19 @@ abstract class StemplerView implements ViewInterface
      */
     protected function mapException(array $data, \Throwable $e, int $lineOffset = 0)
     {
-        $sourcemap = new SourceMap();
-        $sourcemap->unserialize($this->sourcemap);
+        $sourcemap = $this->engine->makeSourceMap(
+            sprintf("%s:%s", $this->view->getNamespace(), $this->view->getName()),
+            $this->context
+        );
 
+        if ($sourcemap === null) {
+            return $e;
+        }
+
+        // todo: cut till parent
         $stack = $sourcemap->getStack($e->getLine() - $lineOffset);
 
+        // todo: trim parent
         foreach ($stack as &$item) {
             $item['class'] = StemplerView::class;
             $item['type'] = '->';

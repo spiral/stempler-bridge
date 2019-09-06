@@ -80,8 +80,17 @@ final class StemplerEngine implements EngineInterface
     ) {
         $this->container = $container;
         $this->cache = $cache;
+
         $this->processors = $processors;
         $this->directives = $directives;
+    }
+
+    /**
+     * @return ContainerInterface
+     */
+    public function getContainer(): ContainerInterface
+    {
+        return $this->container;
     }
 
     /**
@@ -162,29 +171,27 @@ final class StemplerEngine implements EngineInterface
     public function compile(string $path, ContextInterface $context): ViewInterface
     {
         // for name generation only
-        $source = $this->getLoader()->load($path);
+        $view = $this->getLoader()->load($path);
 
         // expected template class name
-        $class = $this->className($source, $context);
+        $class = $this->className($view, $context);
 
         // cache key
-        $key = $this->cacheKey($source, $context);
+        $key = $this->cacheKey($view, $context);
 
         if ($this->cache !== null && $this->cache->isFresh($key)) {
             $this->cache->load($key);
         } elseif (!class_exists($class)) {
-
             try {
                 $result = $this->getBuilder($context)->compile($path);
             } catch (\Throwable $e) {
                 throw new CompileException($e);
             }
 
-            $sourceMap = $result->makeSourceMap($this->getBuilder($context)->getLoader());
-            $compiled = $this->compileClass($class, $result, $sourceMap);
+            $compiled = $this->compileClass($class, $result);
 
             if ($this->cache !== null) {
-                $this->cache->write($key, $compiled, $sourceMap->getPaths());
+                $this->cache->write($key, $compiled, $result->getPaths());
                 $this->cache->load($key);
             }
 
@@ -198,7 +205,7 @@ final class StemplerEngine implements EngineInterface
             throw new EngineException("Unable to load `{$path}`, cache might be corrupted");
         }
 
-        return new $class($this->container);
+        return new $class($this, $view, $context);
     }
 
     /**
@@ -224,12 +231,30 @@ final class StemplerEngine implements EngineInterface
     }
 
     /**
-     * @param string    $class
-     * @param Result    $result
-     * @param SourceMap $sm
+     * Calculate sourcemap for exception highlighting.
+     *
+     * @param string           $path
+     * @param ContextInterface $context
+     * @return SourceMap|null
+     */
+    public function makeSourceMap(string $path, ContextInterface $context): ?SourceMap
+    {
+        try {
+            $builder = $this->getBuilder($context);
+
+            // there is no need to cache sourcemaps since they are used during the exception only
+            return $builder->compile($path)->makeSourceMap($builder->getLoader());
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
+     * @param string $class
+     * @param Result $result
      * @return string
      */
-    private function compileClass(string $class, Result $result, SourceMap $sm): string
+    private function compileClass(string $class, Result $result): string
     {
         $template = '<?php class %s extends \Spiral\Stempler\StemplerView {            
             public function render(array $data=[]): string {
@@ -250,11 +275,9 @@ final class StemplerEngine implements EngineInterface
 
                 return ob_get_clean(); 
             }
-            
-            protected $sourcemap = %s;
         }';
 
-        return sprintf($template, $class, $result->getContent(), var_export($sm->serialize(), true));
+        return sprintf($template, $class, $result->getContent());
     }
 
     /**
