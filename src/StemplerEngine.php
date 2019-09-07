@@ -250,7 +250,7 @@ final class StemplerEngine implements EngineInterface
             $builder = $this->getBuilder($context);
 
             // there is no need to cache sourcemaps since they are used during the exception only
-            return $builder->compile($path)->makeSourceMap($builder->getLoader());
+            return $builder->compile($path)->getSourceMap($builder->getLoader());
         } catch (\Throwable $e) {
             return null;
         }
