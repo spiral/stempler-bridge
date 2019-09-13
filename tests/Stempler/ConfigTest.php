@@ -15,6 +15,8 @@ use Spiral\Stempler\Directive\ConditionalDirective;
 use Spiral\Stempler\Directive\ContainerDirective;
 use Spiral\Stempler\Directive\JsonDirective;
 use Spiral\Stempler\Directive\LoopDirective;
+use Spiral\Stempler\Directive\PHPDirective;
+use Spiral\Stempler\Directive\RouteDirective;
 use Spiral\Views\Processor\ContextProcessor;
 
 class ConfigTest extends BaseTest
@@ -65,6 +67,8 @@ class ConfigTest extends BaseTest
         $config = $this->container->get(StemplerConfig::class);
 
         $this->assertEquals([
+            new Autowire(PHPDirective::class),
+            new Autowire(RouteDirective::class),
             new Autowire(LoopDirective::class),
             new Autowire(JsonDirective::class),
             new Autowire(ConditionalDirective::class),
