@@ -19,10 +19,7 @@ use Spiral\Core\Container\Autowire;
 use Spiral\Core\Container\SingletonInterface;
 use Spiral\Core\FactoryInterface;
 use Spiral\Stempler\Config\StemplerConfig;
-use Spiral\Stempler\Directive\ConditionalDirective;
-use Spiral\Stempler\Directive\ContainerDirective;
-use Spiral\Stempler\Directive\JsonDirective;
-use Spiral\Stempler\Directive\LoopDirective;
+use Spiral\Stempler\Directive;
 use Spiral\Stempler\StemplerCache;
 use Spiral\Stempler\StemplerEngine;
 use Spiral\Translator\Views\LocaleProcessor;
@@ -57,10 +54,12 @@ final class StemplerBootloader extends Bootloader implements DependedInterface, 
     {
         $this->config->setDefaults('views/stempler', [
             'directives' => [
-                LoopDirective::class,
-                JsonDirective::class,
-                ConditionalDirective::class,
-                ContainerDirective::class
+                Directive\PHPDirective::class,
+                Directive\RouteDirective::class,
+                Directive\LoopDirective::class,
+                Directive\JsonDirective::class,
+                Directive\ConditionalDirective::class,
+                Directive\ContainerDirective::class
             ],
             'processors' => [
                 ContextProcessor::class
@@ -136,11 +135,6 @@ final class StemplerBootloader extends Bootloader implements DependedInterface, 
             $cache = new StemplerCache($viewConfig->getCacheDirectory());
         }
 
-        return new StemplerEngine(
-            $container,
-            $cache,
-            $processors,
-            $directives
-        );
+        return new StemplerEngine($container, $cache, $processors, $directives);
     }
 }
