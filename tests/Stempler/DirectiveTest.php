@@ -49,6 +49,15 @@ class DirectiveTest extends BaseTest
 
         $s->get('bad-directive', new ViewContext())->render();
     }
+
+    public function testRouteDirective()
+    {
+        $s = $this->getStempler()->getBuilder(new ViewContext());
+        $this->assertSame(
+            "<?php echo \$this->container->get(\Spiral\Router\RouterInterface::class)->uri('home', ['action' => 'index']); ?>",
+            $s->compile('route')->getContent()
+        );
+    }
 }
 
 class testInjection
