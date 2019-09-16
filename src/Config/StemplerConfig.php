@@ -21,6 +21,7 @@ final class StemplerConfig extends InjectableConfig
     protected $config = [
         'directives' => [],
         'processors' => [],
+        'visitors'   => []
     ];
 
     /**
@@ -57,6 +58,25 @@ final class StemplerConfig extends InjectableConfig
         }
 
         return $processors;
+    }
+
+    /**
+     * @param int $stage
+     * @return array
+     */
+    public function getVisitors(int $stage): array
+    {
+        $visitors = [];
+        foreach ($this->config['visitors'][$stage] ?? [] as $visitor) {
+            if (is_object($visitor) && !$visitor instanceof Autowire) {
+                $visitors[] = $visitor;
+                continue;
+            }
+
+            $visitors[] = $this->wire($visitor);
+        }
+
+        return $visitors;
     }
 
     /**

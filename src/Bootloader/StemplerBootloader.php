@@ -11,26 +11,33 @@ namespace Spiral\Stempler\Bootloader;
 
 use Psr\Container\ContainerInterface;
 use Spiral\Boot\Bootloader\Bootloader;
-use Spiral\Boot\Bootloader\DependedInterface;
 use Spiral\Bootloader\Views\ViewsBootloader;
 use Spiral\Config\ConfiguratorInterface;
 use Spiral\Config\Patch\Append;
-use Spiral\Core\Container\Autowire;
 use Spiral\Core\Container\SingletonInterface;
-use Spiral\Core\FactoryInterface;
+use Spiral\Stempler\Builder;
 use Spiral\Stempler\Config\StemplerConfig;
 use Spiral\Stempler\Directive;
+use Spiral\Stempler\Finalizer\TrimLines;
 use Spiral\Stempler\StemplerCache;
 use Spiral\Stempler\StemplerEngine;
+use Spiral\Stempler\Transform\Finalizer;
+use Spiral\Stempler\Transform\Visitor;
+use Spiral\Stempler\VisitorInterface;
 use Spiral\Translator\Views\LocaleProcessor;
 use Spiral\Views\Config\ViewsConfig;
-use Spiral\Views\Processor\ContextProcessor;
+use Spiral\Views\Processor;
+use Spiral\Views\ProcessorInterface;
 
 /**
  * Initiates stempler engine, it's cache and directives.
  */
-final class StemplerBootloader extends Bootloader implements DependedInterface, SingletonInterface
+final class StemplerBootloader extends Bootloader implements SingletonInterface
 {
+    const DEPENDENCIES = [
+        ViewsBootloader::class
+    ];
+
     const SINGLETONS = [
         StemplerEngine::class => [self::class, 'stemplerEngine']
     ];
@@ -62,7 +69,22 @@ final class StemplerBootloader extends Bootloader implements DependedInterface, 
                 Directive\ContainerDirective::class
             ],
             'processors' => [
-                ContextProcessor::class
+                Processor\ContextProcessor::class
+            ],
+            'visitors'   => [
+                Builder::STAGE_PREPARE   => [
+                    Visitor\DefineBlocks::class,
+                    Visitor\DefineAttributes::class,
+                    Visitor\DefineHidden::class,
+                    Visitor\DefineStacks::class
+                ],
+                Builder::STAGE_TRANSFORM => [
+
+                ],
+                Builder::STAGE_FINALIZE  => [
+                    Finalizer\StackCollector::class,
+                    TrimLines::class,
+                ],
             ]
         ]);
 
@@ -74,7 +96,7 @@ final class StemplerBootloader extends Bootloader implements DependedInterface, 
     }
 
     /**
-     * @param string $directive
+     * @param string|Directive\DirectiveInterface $directive
      */
     public function addDirective($directive)
     {
@@ -82,7 +104,7 @@ final class StemplerBootloader extends Bootloader implements DependedInterface, 
     }
 
     /**
-     * @param mixed $processor
+     * @param mixed|ProcessorInterface $processor
      */
     public function addProcessor($processor)
     {
@@ -90,51 +112,33 @@ final class StemplerBootloader extends Bootloader implements DependedInterface, 
     }
 
     /**
-     * @return array
+     * @param string|VisitorInterface $visitor
+     * @param int                     $stage
      */
-    public function defineDependencies(): array
+    public function addVisitor($visitor, int $stage = Builder::STAGE_FINALIZE)
     {
-        return [
-            ViewsBootloader::class
-        ];
+        $this->config->modify(
+            'views/stempler',
+            new Append('visitors.' . (string)$stage, null, $visitor)
+        );
     }
 
     /**
      * @param ContainerInterface $container
      * @param StemplerConfig     $config
      * @param ViewsConfig        $viewConfig
-     * @param FactoryInterface   $factory
      * @return StemplerEngine
      */
     protected function stemplerEngine(
         ContainerInterface $container,
         StemplerConfig $config,
-        ViewsConfig $viewConfig,
-        FactoryInterface $factory
+        ViewsConfig $viewConfig
     ): StemplerEngine {
-        $processors = [];
-        foreach ($config->getProcessors() as $processor) {
-            if ($processor instanceof Autowire) {
-                $processor = $processor->resolve($factory);
-            }
-
-            $processors[] = $processor;
-        }
-
-        $directives = [];
-        foreach ($config->getDirectives() as $directive) {
-            if ($directive instanceof Autowire) {
-                $directive = $directive->resolve($factory);
-            }
-
-            $directives[] = $directive;
-        }
-
         $cache = null;
         if ($viewConfig->isCacheEnabled()) {
             $cache = new StemplerCache($viewConfig->getCacheDirectory());
         }
 
-        return new StemplerEngine($container, $cache, $processors, $directives);
+        return new StemplerEngine($container, $config, $cache);
     }
 }

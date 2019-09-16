@@ -10,29 +10,20 @@ declare(strict_types=1);
 namespace Spiral\Stempler;
 
 use Psr\Container\ContainerInterface;
+use Spiral\Boot\DirectoriesInterface;
+use Spiral\Core\Container\Autowire;
+use Spiral\Core\FactoryInterface;
 use Spiral\Stempler\Compiler\Renderer\CoreRenderer;
 use Spiral\Stempler\Compiler\Renderer\HTMLRenderer;
 use Spiral\Stempler\Compiler\Renderer\PHPRenderer;
 use Spiral\Stempler\Compiler\Result;
 use Spiral\Stempler\Compiler\SourceMap;
-use Spiral\Stempler\Directive\DirectiveInterface;
-use Spiral\Stempler\Finalizer\TrimLines;
-use Spiral\Stempler\Lexer\Grammar\DynamicGrammar;
-use Spiral\Stempler\Lexer\Grammar\HTMLGrammar;
-use Spiral\Stempler\Lexer\Grammar\InlineGrammar;
-use Spiral\Stempler\Lexer\Grammar\PHPGrammar;
-use Spiral\Stempler\Parser\Syntax\DynamicSyntax;
-use Spiral\Stempler\Parser\Syntax\HTMLSyntax;
-use Spiral\Stempler\Parser\Syntax\InlineSyntax;
-use Spiral\Stempler\Parser\Syntax\PHPSyntax;
+use Spiral\Stempler\Config\StemplerConfig;
+use Spiral\Stempler\Lexer\Grammar;
+use Spiral\Stempler\Parser\Syntax;
 use Spiral\Stempler\Transform\Finalizer\DynamicToPHP;
-use Spiral\Stempler\Transform\Finalizer\StackCollector;
 use Spiral\Stempler\Transform\Merge\ExtendsParent;
 use Spiral\Stempler\Transform\Merge\ResolveImports;
-use Spiral\Stempler\Transform\Visitor\DefineAttributes;
-use Spiral\Stempler\Transform\Visitor\DefineBlocks;
-use Spiral\Stempler\Transform\Visitor\DefineHidden;
-use Spiral\Stempler\Transform\Visitor\DefineStacks;
 use Spiral\Views\ContextInterface;
 use Spiral\Views\EngineInterface;
 use Spiral\Views\Exception\CompileException;
@@ -52,6 +43,9 @@ final class StemplerEngine implements EngineInterface
     /** @var ContainerInterface */
     private $container;
 
+    /** @var StemplerConfig */
+    private $config;
+
     /** @var Builder */
     private $builder;
 
@@ -61,29 +55,19 @@ final class StemplerEngine implements EngineInterface
     /** @var LoaderInterface|null */
     private $loader;
 
-    /** @var ProcessorInterface[] */
-    private $processors = [];
-
-    /** @var DirectiveInterface[] */
-    private $directives = [];
-
     /**
      * @param ContainerInterface $container
+     * @param StemplerConfig     $config
      * @param StemplerCache|null $cache
-     * @param array              $processors
-     * @param array              $directives
      */
     public function __construct(
         ContainerInterface $container,
-        StemplerCache $cache = null,
-        array $processors = [],
-        array $directives = []
+        StemplerConfig $config,
+        StemplerCache $cache = null
     ) {
         $this->container = $container;
+        $this->config = $config;
         $this->cache = $cache;
-
-        $this->processors = $processors;
-        $this->directives = $directives;
     }
 
     /**
@@ -101,40 +85,7 @@ final class StemplerEngine implements EngineInterface
     {
         $engine = clone $this;
         $engine->loader = $loader->withExtension(static::EXTENSION);
-
-        $builder = new Builder(new StemplerLoader($engine->loader, $this->processors));
-
-        // we are using fixed set of grammars and renderers for now
-        $builder->getParser()->addSyntax(new PHPGrammar(), new PHPSyntax());
-        $builder->getParser()->addSyntax(new InlineGrammar(), new InlineSyntax());
-        $builder->getParser()->addSyntax(new DynamicGrammar(), new DynamicSyntax());
-        $builder->getParser()->addSyntax(new HTMLGrammar(), new HTMLSyntax());
-
-        $builder->getCompiler()->addRenderer(new CoreRenderer());
-        $builder->getCompiler()->addRenderer(new PHPRenderer());
-        $builder->getCompiler()->addRenderer(new HTMLRenderer());
-
-        // AST modifications
-        $builder->addVisitor(new DefineBlocks(), Builder::STAGE_PREPARE);
-        $builder->addVisitor(new DefineAttributes(), Builder::STAGE_PREPARE);
-        $builder->addVisitor(new DefineHidden(), Builder::STAGE_PREPARE);
-        $builder->addVisitor(new DefineStacks(), Builder::STAGE_PREPARE);
-
-        // template transformation
-        $builder->addVisitor(new ResolveImports($builder), Builder::STAGE_TRANSFORM);
-        $builder->addVisitor(new ExtendsParent($builder), Builder::STAGE_TRANSFORM);
-
-        // php conversion
-        $builder->addVisitor(new StackCollector(), Builder::STAGE_FINALIZE);
-        $builder->addVisitor(
-            new DynamicToPHP(DynamicToPHP::DEFAULT_FILTER, $this->directives),
-            Builder::STAGE_FINALIZE
-        );
-
-        // smaller views
-        $builder->addVisitor(new TrimLines(), Builder::STAGE_FINALIZE);
-
-        $engine->builder = $builder;
+        $engine->builder = $engine->makeBuilder(new StemplerLoader($engine->loader, $this->getProcessors()));
 
         return $engine;
     }
@@ -312,5 +263,103 @@ final class StemplerEngine implements EngineInterface
         );
 
         return hash('sha256', $key);
+    }
+
+    /**
+     * @param StemplerLoader $loader
+     * @return Builder
+     */
+    private function makeBuilder(StemplerLoader $loader): Builder
+    {
+        $builder = new Builder($loader);
+
+        // we are using fixed set of grammars and renderers for now
+        $builder->getParser()->addSyntax(new Grammar\PHPGrammar(), new Syntax\PHPSyntax());
+        $builder->getParser()->addSyntax(new Grammar\InlineGrammar(), new Syntax\InlineSyntax());
+        $builder->getParser()->addSyntax(new Grammar\DynamicGrammar(), new Syntax\DynamicSyntax());
+        $builder->getParser()->addSyntax(new Grammar\HTMLGrammar(), new Syntax\HTMLSyntax());
+
+        $builder->getCompiler()->addRenderer(new CoreRenderer());
+        $builder->getCompiler()->addRenderer(new PHPRenderer());
+        $builder->getCompiler()->addRenderer(new HTMLRenderer());
+
+        // ATS modifications
+        foreach ($this->getVisitors(Builder::STAGE_PREPARE) as $visitor) {
+            $builder->addVisitor($visitor, Builder::STAGE_PREPARE);
+        }
+
+        $builder->addVisitor(new ResolveImports($builder), Builder::STAGE_TRANSFORM);
+        $builder->addVisitor(new ExtendsParent($builder), Builder::STAGE_TRANSFORM);
+
+        foreach ($this->getVisitors(Builder::STAGE_TRANSFORM) as $visitor) {
+            $builder->addVisitor($visitor, Builder::STAGE_TRANSFORM);
+        }
+
+        // php conversion
+        $builder->addVisitor(
+            new DynamicToPHP(DynamicToPHP::DEFAULT_FILTER, $this->getDirectives()),
+            Builder::STAGE_FINALIZE
+        );
+
+        foreach ($this->getVisitors(Builder::STAGE_FINALIZE) as $visitor) {
+            $builder->addVisitor($visitor, Builder::STAGE_FINALIZE);
+        }
+
+        return $builder;
+    }
+
+    /**
+     * @param int $stage
+     * @return VisitorInterface[]
+     */
+    private function getVisitors(int $stage): iterable
+    {
+        $result = [];
+        foreach ($this->config->getVisitors($stage) as $visitor) {
+            if ($visitor instanceof Autowire) {
+                $result[] = $visitor->resolve($this->container->get(FactoryInterface::class));
+                continue;
+            }
+
+            $result[] = $visitor;
+        }
+
+        return $result;
+    }
+
+    /**
+     * @return ProcessorInterface[]
+     */
+    private function getProcessors(): iterable
+    {
+        $result = [];
+        foreach ($this->config->getProcessors() as $processor) {
+            if ($processor instanceof Autowire) {
+                $result[] = $processor->resolve($this->container->get(FactoryInterface::class));
+                continue;
+            }
+
+            $result[] = $processor;
+        }
+
+        return $result;
+    }
+
+    /**
+     * @return DirectoriesInterface[]
+     */
+    private function getDirectives(): iterable
+    {
+        $result = [];
+        foreach ($this->config->getDirectives() as $directive) {
+            if ($directive instanceof Autowire) {
+                $result[] = $directive->resolve($this->container->get(FactoryInterface::class));
+                continue;
+            }
+
+            $result[] = $directive;
+        }
+
+        return $result;
     }
 }
