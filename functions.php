@@ -7,16 +7,16 @@
  */
 declare(strict_types=1);
 
-// this is
-if (false) {
+if (!function_exists('value')) {
     /**
-     * This function will be replaced with value provided by parent template.
+     * Macro function to be replaced by the injected value.
      *
      * @param string $name
      * @param mixed  $default
+     * @return mixed
      */
-    function value(string $name, $default)
+    function value(string $name, $default = null)
     {
-        // no body
+        return $default;
     }
 }
