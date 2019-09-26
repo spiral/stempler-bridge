@@ -35,10 +35,6 @@ use Spiral\Views\ViewSource;
 
 final class StemplerEngine implements EngineInterface
 {
-    // set of visitors applied after all the processing is over,
-    // the template is fully complete by this moment
-    public const STAGE_CLEANUP = 3;
-
     // default file extension
     public const EXTENSION = 'dark.php';
 
@@ -143,7 +139,9 @@ final class StemplerEngine implements EngineInterface
             $this->cache->load($key);
         } elseif (!class_exists($class)) {
             try {
-                $result = $this->compileTemplate($path, $context);
+                $builder = $this->getBuilder($context);
+
+                $result = $builder->compile($path);
             } catch (\Throwable $e) {
                 throw new CompileException($e);
             }
@@ -310,6 +308,10 @@ final class StemplerEngine implements EngineInterface
             $builder->addVisitor($visitor, Builder::STAGE_FINALIZE);
         }
 
+        foreach ($this->getVisitors(Builder::STAGE_COMPILE) as $visitor) {
+            $builder->addVisitor($visitor, Builder::STAGE_COMPILE);
+        }
+
         return $builder;
     }
 
@@ -366,26 +368,5 @@ final class StemplerEngine implements EngineInterface
         }
 
         return $result;
-    }
-
-    /**
-     * @param string           $path
-     * @param ContextInterface $context
-     * @return Result
-     * @throws \Throwable
-     */
-    protected function compileTemplate(string $path, ContextInterface $context): Result
-    {
-        $builder = $this->getBuilder($context);
-        $tpl = $builder->load($path);
-
-        $traverser = new Traverser();
-        foreach ($this->getVisitors(self::STAGE_CLEANUP) as $visitor) {
-            $traverser->addVisitor($visitor);
-        }
-
-        $tpl->nodes = $traverser->traverse($tpl->nodes);
-
-        return $builder->compileTemplate($tpl);
     }
 }

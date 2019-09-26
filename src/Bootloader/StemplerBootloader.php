@@ -18,7 +18,6 @@ use Spiral\Core\Container\SingletonInterface;
 use Spiral\Stempler\Builder;
 use Spiral\Stempler\Config\StemplerConfig;
 use Spiral\Stempler\Directive;
-use Spiral\Stempler\Finalizer\TrimLines;
 use Spiral\Stempler\StemplerCache;
 use Spiral\Stempler\StemplerEngine;
 use Spiral\Stempler\Transform\Finalizer;
@@ -72,20 +71,20 @@ final class StemplerBootloader extends Bootloader implements SingletonInterface
                 Processor\ContextProcessor::class
             ],
             'visitors'   => [
-                Builder::STAGE_PREPARE        => [
+                Builder::STAGE_PREPARE   => [
                     Visitor\DefineBlocks::class,
                     Visitor\DefineAttributes::class,
                     Visitor\DefineHidden::class,
                     Visitor\DefineStacks::class
                 ],
-                Builder::STAGE_TRANSFORM      => [
+                Builder::STAGE_TRANSFORM => [
 
                 ],
-                Builder::STAGE_FINALIZE       => [
+                Builder::STAGE_FINALIZE  => [
                     Finalizer\StackCollector::class,
                 ],
-                StemplerEngine::STAGE_CLEANUP => [
-                    // template optimizations
+                Builder::STAGE_COMPILE   => [
+
                 ]
             ]
         ]);
@@ -117,7 +116,7 @@ final class StemplerBootloader extends Bootloader implements SingletonInterface
      * @param string|VisitorInterface $visitor
      * @param int                     $stage
      */
-    public function addVisitor($visitor, int $stage = Builder::STAGE_FINALIZE)
+    public function addVisitor($visitor, int $stage = Builder::STAGE_COMPILE)
     {
         $this->config->modify(
             'views/stempler',

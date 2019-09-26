@@ -123,13 +123,31 @@ class ConfigTest extends BaseTest
         /** @var StemplerBootloader $bootloader */
         $bootloader = $this->container->get(StemplerBootloader::class);
 
-        $bootloader->addVisitor('testBinding');
+        $bootloader->addVisitor('testBinding', Builder::STAGE_FINALIZE);
 
         /** @var StemplerConfig $cfg */
         $cfg = $this->container->get(StemplerConfig::class);
 
         $this->assertCount(2, $cfg->getVisitors(Builder::STAGE_FINALIZE));
         $this->assertSame('test result', $cfg->getVisitors(Builder::STAGE_FINALIZE)[1]->resolve($this->container));
+    }
+
+    public function testBootloaderVisitors0()
+    {
+        $this->container->bind('testBinding', function () {
+            return 'test result';
+        });
+
+        /** @var StemplerBootloader $bootloader */
+        $bootloader = $this->container->get(StemplerBootloader::class);
+
+        $bootloader->addVisitor('testBinding', Builder::STAGE_COMPILE);
+
+        /** @var StemplerConfig $cfg */
+        $cfg = $this->container->get(StemplerConfig::class);
+
+        $this->assertCount(1, $cfg->getVisitors(Builder::STAGE_COMPILE));
+        $this->assertSame('test result', $cfg->getVisitors(Builder::STAGE_COMPILE)[0]->resolve($this->container));
     }
 
     public function testBootloaderVisitors2()
