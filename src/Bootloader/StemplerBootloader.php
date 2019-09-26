@@ -72,19 +72,21 @@ final class StemplerBootloader extends Bootloader implements SingletonInterface
                 Processor\ContextProcessor::class
             ],
             'visitors'   => [
-                Builder::STAGE_PREPARE   => [
+                Builder::STAGE_PREPARE        => [
                     Visitor\DefineBlocks::class,
                     Visitor\DefineAttributes::class,
                     Visitor\DefineHidden::class,
                     Visitor\DefineStacks::class
                 ],
-                Builder::STAGE_TRANSFORM => [
+                Builder::STAGE_TRANSFORM      => [
 
                 ],
-                Builder::STAGE_FINALIZE  => [
+                Builder::STAGE_FINALIZE       => [
                     Finalizer\StackCollector::class,
-                    TrimLines::class,
                 ],
+                StemplerEngine::STAGE_CLEANUP => [
+                    // template optimizations
+                ]
             ]
         ]);
 
