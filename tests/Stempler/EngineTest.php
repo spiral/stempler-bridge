@@ -44,6 +44,7 @@ class EngineTest extends BaseTest
         $ctx = $ctx->withDependency(new ValueDependency('name', 'Test'));
 
         $s = $this->getStempler();
+
         $this->assertSame(
             'hello Anton of Test',
             $s->get('other:ctx', $ctx)->render(['name' => 'Anton'])

@@ -22,6 +22,8 @@ use Spiral\Stempler\StemplerCache;
 use Spiral\Stempler\StemplerEngine;
 use Spiral\Stempler\Transform\Finalizer;
 use Spiral\Stempler\Transform\Visitor;
+use Spiral\Stempler\Visitor\FlattenNodes;
+use Spiral\Stempler\Visitor\FormatHTML;
 use Spiral\Stempler\VisitorInterface;
 use Spiral\Translator\Views\LocaleProcessor;
 use Spiral\Views\Config\ViewsConfig;
@@ -84,7 +86,8 @@ final class StemplerBootloader extends Bootloader implements SingletonInterface
                     Finalizer\StackCollector::class,
                 ],
                 Builder::STAGE_COMPILE   => [
-
+                    FlattenNodes::class,
+                    FormatHTML::class
                 ]
             ]
         ]);

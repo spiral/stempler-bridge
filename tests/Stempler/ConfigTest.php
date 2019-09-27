@@ -146,8 +146,8 @@ class ConfigTest extends BaseTest
         /** @var StemplerConfig $cfg */
         $cfg = $this->container->get(StemplerConfig::class);
 
-        $this->assertCount(1, $cfg->getVisitors(Builder::STAGE_COMPILE));
-        $this->assertSame('test result', $cfg->getVisitors(Builder::STAGE_COMPILE)[0]->resolve($this->container));
+        $this->assertCount(3, $cfg->getVisitors(Builder::STAGE_COMPILE));
+        $this->assertSame('test result', $cfg->getVisitors(Builder::STAGE_COMPILE)[2]->resolve($this->container));
     }
 
     public function testBootloaderVisitors2()
