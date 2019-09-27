@@ -65,4 +65,16 @@ class FormatTest extends BaseTest
             $s->get('format/f4', new ViewContext())->render([])
         );
     }
+
+    public function testFormatDiv5()
+    {
+        $s = $this->getStempler();
+
+        $this->assertSame(
+            "<div>
+  hello
+</div>",
+            $s->get('format/f5', new ViewContext())->render([])
+        );
+    }
 }
