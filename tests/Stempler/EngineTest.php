@@ -53,10 +53,10 @@ class EngineTest extends BaseTest
 
     public function testRenderException()
     {
-        $twig = $this->getStempler();
+        $s = $this->getStempler();
 
         try {
-            $twig->get('echo', new ViewContext())->render();
+            $s->get('echo', new ViewContext())->render();
         } catch (RenderException $e) {
             $t = $e->getUserTrace()[0];
 
@@ -67,10 +67,10 @@ class EngineTest extends BaseTest
 
     public function testRenderNestedException()
     {
-        $twig = $this->getStempler();
+        $s = $this->getStempler();
 
         try {
-            $twig->get('other:echo-in', new ViewContext())->render();
+            $s->get('other:echo-in', new ViewContext())->render();
         } catch (RenderException $e) {
             $t = $e->getUserTrace();
             $this->assertCount(2, $t);
