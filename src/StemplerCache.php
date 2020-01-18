@@ -1,10 +1,12 @@
 <?php
+
 /**
  * Spiral Framework.
  *
  * @license   MIT
  * @author    Anton Titov (Wolfy-J)
  */
+
 declare(strict_types=1);
 
 namespace Spiral\Stempler;
@@ -37,7 +39,7 @@ final class StemplerCache
      * @param string $content
      * @param array  $paths
      */
-    public function write(string $key, string $content, array $paths = [])
+    public function write(string $key, string $content, array $paths = []): void
     {
         // template content
         $this->files->write(
@@ -87,7 +89,7 @@ final class StemplerCache
      *
      * @param string $key
      */
-    public function delete(string $key)
+    public function delete(string $key): void
     {
         $filename = $this->filename($key);
         if ($this->files->exists($filename)) {
@@ -105,7 +107,7 @@ final class StemplerCache
      *
      * @param string $key
      */
-    public function load(string $key)
+    public function load(string $key): void
     {
         $filename = $this->filename($key);
         if ($this->files->exists($filename)) {

@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * Spiral Framework.
  *
@@ -19,7 +22,7 @@ class CacheTest extends BaseTest
     /** @var FilesInterface */
     protected $files;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
 
@@ -30,7 +33,7 @@ class CacheTest extends BaseTest
         $configurator->modify('views', new EnableCachePatch());
     }
 
-    public function testCache()
+    public function testCache(): void
     {
         $this->assertCount(0, $this->files->getFiles(__DIR__ . '/../cache/', '*.php'));
 

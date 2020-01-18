@@ -1,10 +1,12 @@
 <?php
+
 /**
  * Spiral Framework.
  *
  * @license   MIT
  * @author    Anton Titov (Wolfy-J)
  */
+
 declare(strict_types=1);
 
 namespace Spiral\Stempler\Directive;
@@ -27,7 +29,7 @@ final class ContainerDirective extends AbstractDirective
     {
         if (count($directive->values) < 2 || strlen($directive->values[0]) === 0) {
             throw new DirectiveException(
-                "Unable to call @inject directive, 2 values required",
+                'Unable to call @inject directive, 2 values required',
                 $directive->getContext()
             );
         }

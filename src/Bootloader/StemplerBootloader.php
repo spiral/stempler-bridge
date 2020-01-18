@@ -1,10 +1,12 @@
 <?php
+
 /**
  * Spiral Framework.
  *
  * @license   MIT
  * @author    Anton Titov (Wolfy-J)
  */
+
 declare(strict_types=1);
 
 namespace Spiral\Stempler\Bootloader;
@@ -22,8 +24,6 @@ use Spiral\Stempler\StemplerCache;
 use Spiral\Stempler\StemplerEngine;
 use Spiral\Stempler\Transform\Finalizer;
 use Spiral\Stempler\Transform\Visitor;
-use Spiral\Stempler\Visitor\FlattenNodes;
-use Spiral\Stempler\Visitor\FormatHTML;
 use Spiral\Stempler\VisitorInterface;
 use Spiral\Translator\Views\LocaleProcessor;
 use Spiral\Views\Config\ViewsConfig;
@@ -35,11 +35,11 @@ use Spiral\Views\ProcessorInterface;
  */
 final class StemplerBootloader extends Bootloader implements SingletonInterface
 {
-    const DEPENDENCIES = [
+    protected const DEPENDENCIES = [
         ViewsBootloader::class
     ];
 
-    const SINGLETONS = [
+    protected const SINGLETONS = [
         StemplerEngine::class => [self::class, 'stemplerEngine']
     ];
 
@@ -58,39 +58,40 @@ final class StemplerBootloader extends Bootloader implements SingletonInterface
      * @param ContainerInterface $container
      * @param ViewsBootloader    $views
      */
-    public function boot(ContainerInterface $container, ViewsBootloader $views)
+    public function boot(ContainerInterface $container, ViewsBootloader $views): void
     {
-        $this->config->setDefaults('views/stempler', [
-            'directives' => [
-                Directive\PHPDirective::class,
-                Directive\RouteDirective::class,
-                Directive\LoopDirective::class,
-                Directive\JsonDirective::class,
-                Directive\ConditionalDirective::class,
-                Directive\ContainerDirective::class
-            ],
-            'processors' => [
-                Processor\ContextProcessor::class
-            ],
-            'visitors'   => [
-                Builder::STAGE_PREPARE   => [
-                    Visitor\DefineBlocks::class,
-                    Visitor\DefineAttributes::class,
-                    Visitor\DefineHidden::class,
-                    Visitor\DefineStacks::class
+        $this->config->setDefaults(
+            'views/stempler',
+            [
+                'directives' => [
+                    Directive\PHPDirective::class,
+                    Directive\RouteDirective::class,
+                    Directive\LoopDirective::class,
+                    Directive\JsonDirective::class,
+                    Directive\ConditionalDirective::class,
+                    Directive\ContainerDirective::class
                 ],
-                Builder::STAGE_TRANSFORM => [
+                'processors' => [
+                    Processor\ContextProcessor::class
+                ],
+                'visitors'   => [
+                    Builder::STAGE_PREPARE   => [
+                        Visitor\DefineBlocks::class,
+                        Visitor\DefineAttributes::class,
+                        Visitor\DefineHidden::class,
+                        Visitor\DefineStacks::class
+                    ],
+                    Builder::STAGE_TRANSFORM => [
 
-                ],
-                Builder::STAGE_FINALIZE  => [
-                    Finalizer\StackCollector::class,
-                ],
-                Builder::STAGE_COMPILE   => [
-                    FlattenNodes::class,
-                    FormatHTML::class
+                    ],
+                    Builder::STAGE_FINALIZE  => [
+                        Finalizer\StackCollector::class,
+                    ],
+                    Builder::STAGE_COMPILE   => [
+                    ]
                 ]
             ]
-        ]);
+        );
 
         $views->addEngine(StemplerEngine::class);
 
@@ -100,26 +101,32 @@ final class StemplerBootloader extends Bootloader implements SingletonInterface
     }
 
     /**
-     * @param string|Directive\DirectiveInterface $directive
+     * @param string|Directive\DirectiveRendererInterface $directive
      */
-    public function addDirective($directive)
+    public function addDirective($directive): void
     {
-        $this->config->modify('views/stempler', new Append('directives', null, $directive));
+        $this->config->modify(
+            'views/stempler',
+            new Append('directives', null, $directive)
+        );
     }
 
     /**
      * @param mixed|ProcessorInterface $processor
      */
-    public function addProcessor($processor)
+    public function addProcessor($processor): void
     {
-        $this->config->modify('views/stempler', new Append('processors', null, $processor));
+        $this->config->modify(
+            'views/stempler',
+            new Append('processors', null, $processor)
+        );
     }
 
     /**
      * @param string|VisitorInterface $visitor
      * @param int                     $stage
      */
-    public function addVisitor($visitor, int $stage = Builder::STAGE_COMPILE)
+    public function addVisitor($visitor, int $stage = Builder::STAGE_COMPILE): void
     {
         $this->config->modify(
             'views/stempler',

@@ -1,10 +1,12 @@
 <?php
+
 /**
  * Spiral Framework.
  *
  * @license   MIT
  * @author    Anton Titov (Wolfy-J)
  */
+
 declare(strict_types=1);
 
 namespace Spiral\Stempler\Directive;
@@ -24,7 +26,7 @@ final class RouteDirective extends AbstractDirective
     {
         if (count($directive->values) < 1) {
             throw new DirectiveException(
-                "Unable to call @route directive, at least 1 value is required",
+                'Unable to call @route directive, at least 1 value is required',
                 $directive->getContext()
             );
         }

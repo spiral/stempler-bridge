@@ -1,10 +1,12 @@
 <?php
+
 /**
  * Spiral Framework.
  *
  * @license   MIT
  * @author    Anton Titov (Wolfy-J)
  */
+
 declare(strict_types=1);
 
 namespace Spiral\Stempler\Config;
@@ -15,7 +17,7 @@ use Spiral\Stempler\Exception\ConfigException;
 
 final class StemplerConfig extends InjectableConfig
 {
-    const CONFIG = "views/stempler";
+    public const CONFIG = 'views/stempler';
 
     /** @var array */
     protected $config = [
@@ -95,6 +97,6 @@ final class StemplerConfig extends InjectableConfig
             return new Autowire($item);
         }
 
-        throw new ConfigException("Invalid class reference in view config");
+        throw new ConfigException('Invalid class reference in view config');
     }
 }

@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * Spiral Framework.
  *
@@ -22,7 +25,7 @@ use Spiral\Views\Processor\ContextProcessor;
 
 class ConfigTest extends BaseTest
 {
-    public function testWireConfigString()
+    public function testWireConfigString(): void
     {
         $config = new StemplerConfig([
             'processors' => [ContextProcessor::class]
@@ -34,7 +37,7 @@ class ConfigTest extends BaseTest
         );
     }
 
-    public function testWireDirective()
+    public function testWireDirective(): void
     {
         $config = new StemplerConfig([
             'directives' => [ContainerDirective::class]
@@ -46,7 +49,7 @@ class ConfigTest extends BaseTest
         );
     }
 
-    public function testWireConfig()
+    public function testWireConfig(): void
     {
         $config = new StemplerConfig([
             'processors' => [
@@ -60,7 +63,7 @@ class ConfigTest extends BaseTest
         );
     }
 
-    public function testDebugConfig()
+    public function testDebugConfig(): void
     {
         $loader = $this->container->get(StemplerBootloader::class);
         $loader->addDirective(self::class);
@@ -78,7 +81,7 @@ class ConfigTest extends BaseTest
         ], $config->getDirectives());
     }
 
-    public function testBootloaderDirective()
+    public function testBootloaderDirective(): void
     {
         $this->container->bind('testBinding', function () {
             return 'test result';
@@ -96,7 +99,7 @@ class ConfigTest extends BaseTest
         $this->assertSame('test result', $cfg->getDirectives()[6]->resolve($this->container));
     }
 
-    public function testBootloaderProcessors()
+    public function testBootloaderProcessors(): void
     {
         $this->container->bind('testBinding', function () {
             return 'test result';
@@ -114,7 +117,7 @@ class ConfigTest extends BaseTest
         $this->assertSame('test result', $cfg->getProcessors()[1]->resolve($this->container));
     }
 
-    public function testBootloaderVisitors()
+    public function testBootloaderVisitors(): void
     {
         $this->container->bind('testBinding', function () {
             return 'test result';
@@ -132,7 +135,7 @@ class ConfigTest extends BaseTest
         $this->assertSame('test result', $cfg->getVisitors(Builder::STAGE_FINALIZE)[1]->resolve($this->container));
     }
 
-    public function testBootloaderVisitors0()
+    public function testBootloaderVisitors0(): void
     {
         $this->container->bind('testBinding', function () {
             return 'test result';
@@ -150,7 +153,7 @@ class ConfigTest extends BaseTest
         $this->assertSame('test result', $cfg->getVisitors(Builder::STAGE_COMPILE)[2]->resolve($this->container));
     }
 
-    public function testBootloaderVisitors2()
+    public function testBootloaderVisitors2(): void
     {
         $this->container->bind('testBinding', function () {
             return 'test result';
@@ -168,7 +171,7 @@ class ConfigTest extends BaseTest
         $this->assertSame('test result', $cfg->getVisitors(Builder::STAGE_TRANSFORM)[0]->resolve($this->container));
     }
 
-    public function testBootloaderVisitors3()
+    public function testBootloaderVisitors3(): void
     {
         $this->container->bind('testBinding', function () {
             return 'test result';

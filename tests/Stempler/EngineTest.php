@@ -1,10 +1,12 @@
 <?php
+
 /**
  * Spiral Framework.
  *
  * @license   MIT
  * @author    Anton Titov (Wolfy-J)
  */
+
 declare(strict_types=1);
 
 namespace Spiral\Stempler\Tests;
@@ -16,7 +18,7 @@ use Spiral\Views\ViewContext;
 
 class EngineTest extends BaseTest
 {
-    public function testList()
+    public function testList(): void
     {
         $views = $this->getStempler()->getLoader()->list();
 
@@ -24,7 +26,7 @@ class EngineTest extends BaseTest
         $this->assertContains('other:test', $views);
     }
 
-    public function testRender()
+    public function testRender(): void
     {
         $s = $this->getStempler();
         $this->assertSame(
@@ -38,7 +40,7 @@ class EngineTest extends BaseTest
         );
     }
 
-    public function testRenderInContext()
+    public function testRenderInContext(): void
     {
         $ctx = new ViewContext();
         $ctx = $ctx->withDependency(new ValueDependency('name', 'Test'));
@@ -51,7 +53,7 @@ class EngineTest extends BaseTest
         );
     }
 
-    public function testRenderException()
+    public function testRenderException(): void
     {
         $s = $this->getStempler();
 
@@ -65,7 +67,7 @@ class EngineTest extends BaseTest
         }
     }
 
-    public function testRenderNestedException()
+    public function testRenderNestedException(): void
     {
         $s = $this->getStempler();
 
@@ -83,7 +85,7 @@ class EngineTest extends BaseTest
         }
     }
 
-    public function testSyntaxException()
+    public function testSyntaxException(): void
     {
         $twig = $this->getStempler();
 

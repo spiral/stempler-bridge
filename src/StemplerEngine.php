@@ -1,16 +1,17 @@
 <?php
+
 /**
  * Spiral Framework.
  *
  * @license   MIT
  * @author    Anton Titov (Wolfy-J)
  */
+
 declare(strict_types=1);
 
 namespace Spiral\Stempler;
 
 use Psr\Container\ContainerInterface;
-use Spiral\Boot\DirectoriesInterface;
 use Spiral\Core\Container\Autowire;
 use Spiral\Core\FactoryInterface;
 use Spiral\Stempler\Compiler\Renderer\CoreRenderer;
@@ -19,6 +20,8 @@ use Spiral\Stempler\Compiler\Renderer\PHPRenderer;
 use Spiral\Stempler\Compiler\Result;
 use Spiral\Stempler\Compiler\SourceMap;
 use Spiral\Stempler\Config\StemplerConfig;
+use Spiral\Stempler\Directive\DirectiveGroup;
+use Spiral\Stempler\Directive\DirectiveRendererInterface;
 use Spiral\Stempler\Lexer\Grammar;
 use Spiral\Stempler\Parser\Syntax;
 use Spiral\Stempler\Transform\Finalizer\DynamicToPHP;
@@ -32,6 +35,7 @@ use Spiral\Views\LoaderInterface;
 use Spiral\Views\ProcessorInterface;
 use Spiral\Views\ViewInterface;
 use Spiral\Views\ViewSource;
+use Throwable;
 
 final class StemplerEngine implements EngineInterface
 {
@@ -97,7 +101,7 @@ final class StemplerEngine implements EngineInterface
     public function getLoader(): LoaderInterface
     {
         if ($this->loader === null) {
-            throw new EngineException("No associated loader found");
+            throw new EngineException('No associated loader found');
         }
 
         return $this->loader;
@@ -112,7 +116,7 @@ final class StemplerEngine implements EngineInterface
     public function getBuilder(ContextInterface $context): Builder
     {
         if ($this->builder === null) {
-            throw new EngineException("No associated builder found");
+            throw new EngineException('No associated builder found');
         }
 
         // since view source support pre-processing we must ensure that context is always set
@@ -142,16 +146,23 @@ final class StemplerEngine implements EngineInterface
                 $builder = $this->getBuilder($context);
 
                 $result = $builder->compile($path);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 throw new CompileException($e);
             }
 
             $compiled = $this->compileClass($class, $result);
 
             if ($this->cache !== null) {
-                $this->cache->write($key, $compiled, array_map(function ($path) {
-                    return $this->getLoader()->load($path)->getFilename();
-                }, $result->getPaths()));
+                $this->cache->write(
+                    $key,
+                    $compiled,
+                    array_map(
+                        function ($path) {
+                            return $this->getLoader()->load($path)->getFilename();
+                        },
+                        $result->getPaths()
+                    )
+                );
 
                 $this->cache->load($key);
             }
@@ -172,7 +183,7 @@ final class StemplerEngine implements EngineInterface
     /**
      * @inheritDoc
      */
-    public function reset(string $path, ContextInterface $context)
+    public function reset(string $path, ContextInterface $context): void
     {
         if ($this->cache === null) {
             return;
@@ -205,7 +216,7 @@ final class StemplerEngine implements EngineInterface
 
             // there is no need to cache sourcemaps since they are used during the exception only
             return $builder->compile($path)->getSourceMap($builder->getLoader());
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return null;
         }
     }
@@ -217,7 +228,7 @@ final class StemplerEngine implements EngineInterface
      */
     private function compileClass(string $class, Result $result): string
     {
-        $template = '<?php class %s extends \Spiral\Stempler\StemplerView {            
+        $template = '<?php class %s extends \Spiral\Stempler\StemplerView {
             public function render(array $data=[]): string {
                 ob_start();
                 $__outputLevel__ = ob_get_level();
@@ -229,12 +240,12 @@ final class StemplerEngine implements EngineInterface
                     });
                 } catch (\Throwable $e) {
                     while (ob_get_level() >= $__outputLevel__) { ob_end_clean(); }
-                    throw $this->mapException(8, $e, $data);                    
+                    throw $this->mapException(8, $e, $data);
                 } finally {
                     while (ob_get_level() > $__outputLevel__) { ob_end_clean(); }
                 }
 
-                return ob_get_clean(); 
+                return ob_get_clean();
             }
         }';
 
@@ -259,7 +270,7 @@ final class StemplerEngine implements EngineInterface
     private function cacheKey(ViewSource $source, ContextInterface $context): string
     {
         $key = sprintf(
-            "%s.%s.%s",
+            '%s.%s.%s',
             $source->getNamespace(),
             $source->getName(),
             $context->getID()
@@ -276,11 +287,31 @@ final class StemplerEngine implements EngineInterface
     {
         $builder = new Builder($loader);
 
+        $directivesGroup = new DirectiveGroup();
+        foreach ($this->getDirectives() as $directive) {
+            $directivesGroup->addDirective($directive);
+        }
+
         // we are using fixed set of grammars and renderers for now
-        $builder->getParser()->addSyntax(new Grammar\PHPGrammar(), new Syntax\PHPSyntax());
-        $builder->getParser()->addSyntax(new Grammar\InlineGrammar(), new Syntax\InlineSyntax());
-        $builder->getParser()->addSyntax(new Grammar\DynamicGrammar(), new Syntax\DynamicSyntax());
-        $builder->getParser()->addSyntax(new Grammar\HTMLGrammar(), new Syntax\HTMLSyntax());
+        $builder->getParser()->addSyntax(
+            new Grammar\PHPGrammar(),
+            new Syntax\PHPSyntax()
+        );
+
+        $builder->getParser()->addSyntax(
+            new Grammar\InlineGrammar(),
+            new Syntax\InlineSyntax()
+        );
+
+        $builder->getParser()->addSyntax(
+            new Grammar\DynamicGrammar($directivesGroup),
+            new Syntax\DynamicSyntax()
+        );
+
+        $builder->getParser()->addSyntax(
+            new Grammar\HTMLGrammar(),
+            new Syntax\HTMLSyntax()
+        );
 
         $builder->getCompiler()->addRenderer(new CoreRenderer());
         $builder->getCompiler()->addRenderer(new PHPRenderer());
@@ -353,7 +384,7 @@ final class StemplerEngine implements EngineInterface
     }
 
     /**
-     * @return DirectoriesInterface[]
+     * @return DirectiveRendererInterface[]
      */
     private function getDirectives(): iterable
     {

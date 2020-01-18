@@ -1,10 +1,12 @@
 <?php
+
 /**
  * Spiral Framework.
  *
  * @license   MIT
  * @author    Anton Titov (Wolfy-J)
  */
+
 declare(strict_types=1);
 
 namespace Spiral\Stempler;
@@ -44,7 +46,7 @@ final class StemplerLoader implements StemplerLoaderInterface
      *
      * @param ContextInterface $context
      */
-    public function setContext(ContextInterface $context)
+    public function setContext(ContextInterface $context): void
     {
         $this->context = $context;
     }
@@ -55,7 +57,7 @@ final class StemplerLoader implements StemplerLoaderInterface
     public function load(string $path): Source
     {
         if ($this->context === null) {
-            throw new EngineException("Unable to use StemplerLoader without given context.");
+            throw new EngineException('Unable to use StemplerLoader without given context.');
         }
 
         $source = $this->process(

@@ -1,10 +1,12 @@
 <?php
+
 /**
  * Spiral Framework.
  *
  * @license   MIT
  * @author    Anton Titov (Wolfy-J)
  */
+
 declare(strict_types=1);
 
 namespace Spiral\Stempler\Tests;
@@ -13,7 +15,7 @@ use Spiral\Views\ViewContext;
 
 class FormatTest extends BaseTest
 {
-    public function testFormatDiv()
+    public function testFormatDiv(): void
     {
         $s = $this->getStempler();
 
@@ -23,7 +25,7 @@ class FormatTest extends BaseTest
         );
     }
 
-    public function testFormatDiv2()
+    public function testFormatDiv2(): void
     {
         $s = $this->getStempler();
 
@@ -33,27 +35,27 @@ class FormatTest extends BaseTest
         );
     }
 
-    public function testFormatDiv3()
+    public function testFormatDiv3(): void
     {
         $s = $this->getStempler();
 
         $this->assertSame(
-            "<div> first
+            '<div> first
   <div>
     hello
   </div>
   test
-</div>",
+</div>',
             $s->get('format/f3', new ViewContext())->render([])
         );
     }
 
-    public function testFormatDiv4()
+    public function testFormatDiv4(): void
     {
         $s = $this->getStempler();
 
         $this->assertSame(
-            "<div>
+            '<div>
   hello
   <pre>
           test magic
@@ -61,19 +63,19 @@ class FormatTest extends BaseTest
 
     </pre>
   extra spaces
-</div>",
-            $s->get('format/f4', new ViewContext())->render([])
+</div>',
+            str_replace("\r", "", $s->get('format/f4', new ViewContext())->render([]))
         );
     }
 
-    public function testFormatDiv5()
+    public function testFormatDiv5(): void
     {
         $s = $this->getStempler();
 
         $this->assertSame(
-            "<div>
+            '<div>
   hello
-</div>",
+</div>',
             $s->get('format/f5', new ViewContext())->render([])
         );
     }
