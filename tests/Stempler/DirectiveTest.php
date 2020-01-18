@@ -28,7 +28,7 @@ class DirectiveTest extends BaseTest
     public function testRenderDirective(): void
     {
         $s = $this->getStempler();
-        $this->container->bind(testInjection::class, new testInjection('abc'));
+        $this->container->bind(TestInjection::class, new TestInjection('abc'));
 
         $this->assertSame('abc', $s->get('directive', new ViewContext())->render());
     }
@@ -36,7 +36,7 @@ class DirectiveTest extends BaseTest
     public function testRenderDirectiveAsArray(): void
     {
         $s = $this->getStempler();
-        $this->container->bind(testInjection::class, new testInjection('abc'));
+        $this->container->bind(TestInjection::class, new TestInjection('abc'));
 
         $this->assertSame('abc', $s->get('directive2', new ViewContext())->render());
     }
@@ -47,7 +47,7 @@ class DirectiveTest extends BaseTest
     public function testBadDirective(): void
     {
         $s = $this->getStempler();
-        $this->container->bind(testInjection::class, new testInjection('abc'));
+        $this->container->bind(TestInjection::class, new TestInjection('abc'));
 
         $s->get('bad-directive', new ViewContext())->render();
     }
@@ -56,18 +56,9 @@ class DirectiveTest extends BaseTest
     {
         $s = $this->getStempler()->getBuilder(new ViewContext());
         $this->assertSame(
-            "<?php echo \$this->container->get(\Spiral\Router\RouterInterface::class)->uri('home', ['action' => 'index']); ?>",
+            "<?php echo \$this->container->get(\Spiral\Router\RouterInterface::class)"
+            . "->uri('home', ['action' => 'index']); ?>",
             $s->compile('route')->getContent()
         );
-    }
-}
-
-class testInjection
-{
-    public $name;
-
-    public function __construct(string $name)
-    {
-        $this->name = $name;
     }
 }

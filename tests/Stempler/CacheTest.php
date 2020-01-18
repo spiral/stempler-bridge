@@ -1,13 +1,13 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * Spiral Framework.
  *
  * @license   MIT
  * @author    Anton Titov (Wolfy-J)
  */
+
+declare(strict_types=1);
 
 namespace Spiral\Stempler\Tests;
 
@@ -43,15 +43,5 @@ class CacheTest extends BaseTest
 
         $s->reset('test', new ViewContext());
         $this->assertCount(0, $this->files->getFiles(__DIR__ . '/../cache/', '*.php'));
-    }
-}
-
-class EnableCachePatch implements PatchInterface
-{
-    public function patch(array $config): array
-    {
-        $config['cache']['enable'] = true;
-
-        return $config;
     }
 }

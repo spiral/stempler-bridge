@@ -66,7 +66,11 @@ final class FlattenNodes implements VisitorInterface
     {
         $result = [];
         foreach ($nodes as $i => $node) {
-            if ($node instanceof Raw && isset($result[count($result) - 1]) && $result[count($result) - 1] instanceof Raw) {
+            if (
+                $node instanceof Raw
+                && isset($result[count($result) - 1])
+                && $result[count($result) - 1] instanceof Raw
+            ) {
                 $result[count($result) - 1]->content .= $node->content;
                 continue;
             }
