@@ -79,12 +79,12 @@ final class StemplerBootloader extends Bootloader implements SingletonInterface
                         Visitor\DefineBlocks::class,
                         Visitor\DefineAttributes::class,
                         Visitor\DefineHidden::class,
-                        Visitor\DefineStacks::class
                     ],
                     Builder::STAGE_TRANSFORM => [
 
                     ],
                     Builder::STAGE_FINALIZE  => [
+                        Visitor\DefineStacks::class,
                         Finalizer\StackCollector::class,
                     ],
                     Builder::STAGE_COMPILE   => [

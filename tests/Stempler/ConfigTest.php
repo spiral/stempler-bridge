@@ -131,8 +131,8 @@ class ConfigTest extends BaseTest
         /** @var StemplerConfig $cfg */
         $cfg = $this->container->get(StemplerConfig::class);
 
-        $this->assertCount(2, $cfg->getVisitors(Builder::STAGE_FINALIZE));
-        $this->assertSame('test result', $cfg->getVisitors(Builder::STAGE_FINALIZE)[1]->resolve($this->container));
+        $this->assertCount(3, $cfg->getVisitors(Builder::STAGE_FINALIZE));
+        $this->assertSame('test result', $cfg->getVisitors(Builder::STAGE_FINALIZE)[2]->resolve($this->container));
     }
 
     public function testBootloaderVisitors0(): void
@@ -185,7 +185,7 @@ class ConfigTest extends BaseTest
         /** @var StemplerConfig $cfg */
         $cfg = $this->container->get(StemplerConfig::class);
 
-        $this->assertCount(5, $cfg->getVisitors(Builder::STAGE_PREPARE));
-        $this->assertSame('test result', $cfg->getVisitors(Builder::STAGE_PREPARE)[4]->resolve($this->container));
+        $this->assertCount(4, $cfg->getVisitors(Builder::STAGE_PREPARE));
+        $this->assertSame('test result', $cfg->getVisitors(Builder::STAGE_PREPARE)[3]->resolve($this->container));
     }
 }
