@@ -56,7 +56,7 @@ class DirectiveTest extends BaseTest
     {
         $s = $this->getStempler()->getBuilder(new ViewContext());
         $this->assertSame(
-            "<?php echo \$this->container->get(\Spiral\Router\RouterInterface::class)"
+            "<?php echo \$this->container->get(\Spiral\Stempler\Directive\RouteDirective::class)"
             . "->uri('home', ['action' => 'index']); ?>",
             $s->compile('route')->getContent()
         );
