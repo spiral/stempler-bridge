@@ -15,6 +15,7 @@ use Psr\Container\ContainerInterface;
 use Spiral\Core\Container\Autowire;
 use Spiral\Core\FactoryInterface;
 use Spiral\Stempler\Compiler\Renderer\CoreRenderer;
+use Spiral\Stempler\Compiler\Renderer\DynamicRenderer;
 use Spiral\Stempler\Compiler\Renderer\HTMLRenderer;
 use Spiral\Stempler\Compiler\Renderer\PHPRenderer;
 use Spiral\Stempler\Compiler\Result;
@@ -316,6 +317,7 @@ final class StemplerEngine implements EngineInterface
         $builder->getCompiler()->addRenderer(new CoreRenderer());
         $builder->getCompiler()->addRenderer(new PHPRenderer());
         $builder->getCompiler()->addRenderer(new HTMLRenderer());
+        $builder->getCompiler()->addRenderer(new DynamicRenderer(new DirectiveGroup($this->getDirectives())));
 
         // ATS modifications
         foreach ($this->getVisitors(Builder::STAGE_PREPARE) as $visitor) {
