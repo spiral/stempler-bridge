@@ -322,18 +322,18 @@ final class StemplerEngine implements EngineInterface
             $builder->addVisitor($visitor, Builder::STAGE_PREPARE);
         }
 
+        // php conversion
+        $builder->addVisitor(
+            new DynamicToPHP(DynamicToPHP::DEFAULT_FILTER, $this->getDirectives()),
+            Builder::STAGE_TRANSFORM
+        );
+
         $builder->addVisitor(new ResolveImports($builder), Builder::STAGE_TRANSFORM);
         $builder->addVisitor(new ExtendsParent($builder), Builder::STAGE_TRANSFORM);
 
         foreach ($this->getVisitors(Builder::STAGE_TRANSFORM) as $visitor) {
             $builder->addVisitor($visitor, Builder::STAGE_TRANSFORM);
         }
-
-        // php conversion
-        $builder->addVisitor(
-            new DynamicToPHP(DynamicToPHP::DEFAULT_FILTER, $this->getDirectives()),
-            Builder::STAGE_FINALIZE
-        );
 
         foreach ($this->getVisitors(Builder::STAGE_FINALIZE) as $visitor) {
             $builder->addVisitor($visitor, Builder::STAGE_FINALIZE);
