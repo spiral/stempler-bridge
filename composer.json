@@ -12,8 +12,7 @@
   "require": {
     "php": "^7.2",
     "spiral/stempler": "^2.0",
-    "spiral/views": "^1.0",
-    "spiral/framework": "^2.0"
+    "spiral/framework": "^2.6"
   },
   "require-dev": {
     "phpunit/phpunit": "~7.0",
@@ -33,5 +32,15 @@
     "psr-4": {
       "Spiral\\Stempler\\Tests\\": "tests/Stempler/"
     }
-  }
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "2.7.x-dev"
+    }
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
 }
