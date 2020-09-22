@@ -33,11 +33,6 @@
       "Spiral\\Stempler\\Tests\\": "tests/Stempler/"
     }
   },
-  "extra": {
-    "branch-alias": {
-      "dev-master": "2.7.x-dev"
-    }
-  },
   "config": {
     "sort-packages": true
   },
