@@ -81,10 +81,7 @@ final class StemplerEngine implements EngineInterface
         }
 
         // since view source support pre-processing we must ensure that context is always set
-        $loader = $this->builder->getLoader();
-        if ($loader instanceof StemplerLoader) {
-            $loader->setContext($context);
-        }
+        $this->builder->getLoader()->setContext($context);
 
         return $this->builder;
     }
@@ -132,8 +129,8 @@ final class StemplerEngine implements EngineInterface
             }
         }
 
-        if (!\class_exists($class) || !\is_subclass_of($class, ViewInterface::class)) {
-            throw new EngineException(\sprintf('Unable to load `%s`, cache might be corrupted.', $path));
+        if (!\class_exists($class)) {
+            throw new EngineException(\sprintf('Unable to load `%s`, cache might be corrupted', $path));
         }
 
         return new $class($this, $view, $context);
@@ -196,12 +193,8 @@ final class StemplerEngine implements EngineInterface
         return \sprintf($template, $class, $result->getContent());
     }
 
-    /**
-     * @return class-string<ViewInterface>
-     */
     private function className(ViewSource $source, ContextInterface $context): string
     {
-        /** @psalm-suppress LessSpecificReturnStatement */
         return $this->classPrefix . $this->cacheKey($source, $context);
     }
 

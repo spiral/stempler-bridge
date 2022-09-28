@@ -58,7 +58,7 @@ final class FormatHTML implements VisitorInterface
             }
 
             $child->content = $this->indentContent(
-                $this->normalizeEndings((string)$child->content, false),
+                $this->normalizeEndings($child->content, false),
                 $level,
                 $position
             );
