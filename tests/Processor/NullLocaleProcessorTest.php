@@ -12,6 +12,9 @@ final class NullLocaleProcessorTest extends BaseTestCase
     public function testProcess(): void
     {
         $s = $this->getStempler();
-        self::assertSame("Hello world!\n", $s->get('localized', new ViewContext())->render([]));
+        $this->assertSame(
+            "Hello world!\n",
+            $s->get('localized', new ViewContext())->render([])
+        );
     }
 }

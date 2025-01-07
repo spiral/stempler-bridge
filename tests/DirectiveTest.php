@@ -28,7 +28,7 @@ class DirectiveTest extends BaseTestCase
         $s = $this->getStempler();
         $this->container->bind(TestInjection::class, new TestInjection('abc'));
 
-        self::assertSame('abc', $s->get('directive', new ViewContext())->render());
+        $this->assertSame('abc', $s->get('directive', new ViewContext())->render());
     }
 
     #[TestScope("http")]
@@ -37,7 +37,7 @@ class DirectiveTest extends BaseTestCase
         $s = $this->getStempler();
         $this->container->bind(TestInjection::class, new TestInjection('abc'));
 
-        self::assertSame('abc', $s->get('directive2', new ViewContext())->render());
+        $this->assertSame('abc', $s->get('directive2', new ViewContext())->render());
     }
 
     public function testBadDirective(): void
@@ -57,8 +57,11 @@ class DirectiveTest extends BaseTestCase
         $s = $this->getStempler()
             ->getBuilder(new ViewContext())
         ;
-        self::assertSame("<?php echo \$this->container->get(\Spiral\Stempler\Directive\RouteDirective::class)"
-        . "->uri('home', ['action' => 'index']); ?>", $s->compile('route')
-            ->getContent());
+        $this->assertSame(
+            "<?php echo \$this->container->get(\Spiral\Stempler\Directive\RouteDirective::class)"
+            . "->uri('home', ['action' => 'index']); ?>",
+            $s->compile('route')
+                ->getContent()
+        );
     }
 }
