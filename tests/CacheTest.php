@@ -16,7 +16,7 @@ class CacheTest extends BaseTestCase
     /** @var FilesInterface */
     protected $files;
 
-    protected function setUp(): void
+    public function setUp(): void
     {
         parent::setUp();
 
@@ -30,13 +30,13 @@ class CacheTest extends BaseTestCase
     #[TestScope("http")]
     public function testCache(): void
     {
-        self::assertCount(0, $this->files->getFiles(__DIR__ . '/cache/', '*.php'));
+        $this->assertCount(0, $this->files->getFiles(__DIR__ . '/cache/', '*.php'));
 
         $s = $this->getStempler();
-        self::assertSame('test', $s->get('test', new ViewContext())->render([]));
-        self::assertCount(2, $this->files->getFiles(__DIR__ . '/cache/', '*.php'));
+        $this->assertSame('test', $s->get('test', new ViewContext())->render([]));
+        $this->assertCount(2, $this->files->getFiles(__DIR__ . '/cache/', '*.php'));
 
         $s->reset('test', new ViewContext());
-        self::assertCount(0, $this->files->getFiles(__DIR__ . '/../cache/', '*.php'));
+        $this->assertCount(0, $this->files->getFiles(__DIR__ . '/../cache/', '*.php'));
     }
 }

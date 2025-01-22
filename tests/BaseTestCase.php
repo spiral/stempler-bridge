@@ -32,7 +32,7 @@ abstract class BaseTestCase extends TestCase
         ] + parent::defineDirectories($root);
     }
 
-    protected function setUp(): void
+    public function setUp(): void
     {
         parent::setUp();
 

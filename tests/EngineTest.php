@@ -17,16 +17,22 @@ class EngineTest extends BaseTestCase
     {
         $views = $this->getStempler()->getLoader()->list();
 
-        self::assertContains('default:test', $views);
-        self::assertContains('other:test', $views);
+        $this->assertContains('default:test', $views);
+        $this->assertContains('other:test', $views);
     }
 
     public function testRender(): void
     {
         $s = $this->getStempler();
-        self::assertSame('test', $s->get('test', new ViewContext())->render([]));
+        $this->assertSame(
+            'test',
+            $s->get('test', new ViewContext())->render([])
+        );
 
-        self::assertSame('other test', $s->get('other:test', new ViewContext())->render([]));
+        $this->assertSame(
+            'other test',
+            $s->get('other:test', new ViewContext())->render([])
+        );
     }
 
     public function testRenderInContext(): void
@@ -36,7 +42,10 @@ class EngineTest extends BaseTestCase
 
         $s = $this->getStempler();
 
-        self::assertSame('hello Anton of Test', $s->get('other:ctx', $ctx)->render(['name' => 'Anton']));
+        $this->assertSame(
+            'hello Anton of Test',
+            $s->get('other:ctx', $ctx)->render(['name' => 'Anton'])
+        );
     }
 
     public function testRenderException(): void
@@ -49,8 +58,8 @@ class EngineTest extends BaseTestCase
         } catch (RenderException $e) {
             $t = $e->getUserTrace()[0];
 
-            self::assertSame(2, $t['line']);
-            self::assertStringContainsString('echo.dark.php', $t['file']);
+            $this->assertSame(2, $t['line']);
+            $this->assertStringContainsString('echo.dark.php', $t['file']);
         }
     }
 
@@ -63,13 +72,13 @@ class EngineTest extends BaseTestCase
             $this->fail('Exception expected');
         } catch (RenderException $e) {
             $t = $e->getUserTrace();
-            self::assertCount(2, $t);
+            $this->assertCount(2, $t);
 
-            self::assertSame(2, $t[0]['line']);
-            self::assertStringContainsString('echo.dark.php', $t[0]['file']);
+            $this->assertSame(2, $t[0]['line']);
+            $this->assertStringContainsString('echo.dark.php', $t[0]['file']);
 
-            self::assertSame(3, $t[1]['line']);
-            self::assertStringContainsString('echo-in.dark.php', $t[1]['file']);
+            $this->assertSame(3, $t[1]['line']);
+            $this->assertStringContainsString('echo-in.dark.php', $t[1]['file']);
         }
     }
 
@@ -80,7 +89,7 @@ class EngineTest extends BaseTestCase
         try {
             $twig->get('other:bad', new ViewContext());
         } catch (CompileException $e) {
-            self::assertStringContainsString('bad.dark.php', $e->getFile());
+            $this->assertStringContainsString('bad.dark.php', $e->getFile());
         }
     }
 }
