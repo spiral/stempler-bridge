@@ -8,7 +8,6 @@ use Psr\Container\ContainerInterface;
 use Spiral\Boot\Bootloader\Bootloader;
 use Spiral\Config\ConfiguratorInterface;
 use Spiral\Config\Patch\Append;
-use Spiral\Core\Attribute\Proxy;
 use Spiral\Core\Attribute\Singleton;
 use Spiral\Core\Container\Autowire;
 use Spiral\Stempler\Builder;
@@ -37,8 +36,9 @@ final class StemplerBootloader extends Bootloader
     ];
 
     public function __construct(
-        private readonly ConfiguratorInterface $config,
-    ) {}
+        private readonly ConfiguratorInterface $config
+    ) {
+    }
 
     public function init(ContainerInterface $container, ViewsBootloader $views): void
     {
@@ -72,7 +72,7 @@ final class StemplerBootloader extends Bootloader
                     Builder::STAGE_COMPILE => [
                     ],
                 ],
-            ],
+            ]
         );
 
         $views->addEngine(StemplerEngine::class);
@@ -88,7 +88,7 @@ final class StemplerBootloader extends Bootloader
     {
         $this->config->modify(
             StemplerConfig::CONFIG,
-            new Append('directives', null, $directive),
+            new Append('directives', null, $directive)
         );
     }
 
@@ -96,7 +96,7 @@ final class StemplerBootloader extends Bootloader
     {
         $this->config->modify(
             StemplerConfig::CONFIG,
-            new Append('processors', null, $processor),
+            new Append('processors', null, $processor)
         );
     }
 
@@ -104,14 +104,14 @@ final class StemplerBootloader extends Bootloader
     {
         $this->config->modify(
             StemplerConfig::CONFIG,
-            new Append('visitors.' . $stage, null, $visitor),
+            new Append('visitors.' . $stage, null, $visitor)
         );
     }
 
     protected function stemplerEngine(
-        #[Proxy] ContainerInterface $container,
+        ContainerInterface $container,
         StemplerConfig $config,
-        ViewsConfig $viewConfig,
+        ViewsConfig $viewConfig
     ): StemplerEngine {
         $cache = null;
         if ($viewConfig->isCacheEnabled()) {

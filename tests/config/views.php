@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
 return [
     'cache'        => [
         'enabled'   => false,
-        'directory' => __DIR__ . '/../cache',
+        'directory' => __DIR__ . '/../cache'
     ],
     'namespaces'   => [
         'default'    => [__DIR__ . '/../fixtures/default'],
@@ -13,5 +11,5 @@ return [
         'extensions' => [__DIR__ . '/../fixtures/other/extensions'],
     ],
     'dependencies' => [],
-    'engines'      => [],
+    'engines'      => []
 ];
