@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Spiral\Stempler;
 
 use Psr\Container\ContainerInterface;
+use Spiral\Core\Attribute\Proxy;
 use Spiral\Core\Container\Autowire;
 use Spiral\Core\FactoryInterface;
 use Spiral\Stempler\Compiler\Renderer\CoreRenderer;
@@ -29,7 +30,6 @@ use Spiral\Views\LoaderInterface;
 use Spiral\Views\ProcessorInterface;
 use Spiral\Views\ViewInterface;
 use Spiral\Views\ViewSource;
-use Throwable;
 
 final class StemplerEngine implements EngineInterface
 {
@@ -37,16 +37,14 @@ final class StemplerEngine implements EngineInterface
     public const EXTENSION = 'dark.php';
 
     private string $classPrefix = '__StemplerView__';
-
     private ?Builder $builder = null;
     private ?LoaderInterface $loader = null;
 
     public function __construct(
-        private readonly ContainerInterface $container,
+        #[Proxy] private readonly ContainerInterface $container,
         private readonly StemplerConfig $config,
-        private readonly ?StemplerCache $cache = null
-    ) {
-    }
+        private readonly ?StemplerCache $cache = null,
+    ) {}
 
     public function getContainer(): ContainerInterface
     {
@@ -56,7 +54,7 @@ final class StemplerEngine implements EngineInterface
     public function withLoader(LoaderInterface $loader): EngineInterface
     {
         $engine = clone $this;
-        $engine->loader = $loader->withExtension(static::EXTENSION);
+        $engine->loader = $loader->withExtension(self::EXTENSION);
         $engine->builder = $engine->makeBuilder(new StemplerLoader($engine->loader, $this->getProcessors()));
 
         return $engine;
@@ -107,7 +105,7 @@ final class StemplerEngine implements EngineInterface
                 $builder = $this->getBuilder($context);
 
                 $result = $builder->compile($path);
-            } catch (Throwable $e) {
+            } catch (\Throwable $e) {
                 throw new CompileException($e);
             }
 
@@ -118,9 +116,9 @@ final class StemplerEngine implements EngineInterface
                     $key,
                     $compiled,
                     \array_map(
-                        fn ($path) => $this->getLoader()->load($path)->getFilename(),
-                        $result->getPaths()
-                    )
+                        fn($path): string => $this->getLoader()->load($path)->getFilename(),
+                        $result->getPaths(),
+                    ),
                 );
 
                 $this->cache->load($key);
@@ -165,7 +163,7 @@ final class StemplerEngine implements EngineInterface
 
             // there is no need to cache sourcemaps since they are used during the exception only
             return $builder->compile($path)->getSourceMap($builder->getLoader());
-        } catch (Throwable) {
+        } catch (\Throwable) {
             return null;
         }
     }
@@ -210,7 +208,7 @@ final class StemplerEngine implements EngineInterface
             '%s.%s.%s',
             $source->getNamespace(),
             $source->getName(),
-            $context->getID()
+            $context->getID(),
         );
 
         return \hash('sha256', $key);
@@ -228,22 +226,22 @@ final class StemplerEngine implements EngineInterface
         // we are using fixed set of grammars and renderers for now
         $builder->getParser()->addSyntax(
             new Grammar\PHPGrammar(),
-            new Syntax\PHPSyntax()
+            new Syntax\PHPSyntax(),
         );
 
         $builder->getParser()->addSyntax(
             new Grammar\InlineGrammar(),
-            new Syntax\InlineSyntax()
+            new Syntax\InlineSyntax(),
         );
 
         $builder->getParser()->addSyntax(
             new Grammar\DynamicGrammar($directivesGroup),
-            new Syntax\DynamicSyntax()
+            new Syntax\DynamicSyntax(),
         );
 
         $builder->getParser()->addSyntax(
             new Grammar\HTMLGrammar(),
-            new Syntax\HTMLSyntax()
+            new Syntax\HTMLSyntax(),
         );
 
         $builder->getCompiler()->addRenderer(new CoreRenderer());
@@ -259,7 +257,7 @@ final class StemplerEngine implements EngineInterface
         // php conversion
         $builder->addVisitor(
             new DynamicToPHP(DynamicToPHP::DEFAULT_FILTER, $this->getDirectives()),
-            Builder::STAGE_TRANSFORM
+            Builder::STAGE_TRANSFORM,
         );
 
         $builder->addVisitor(new ResolveImports($builder), Builder::STAGE_TRANSFORM);

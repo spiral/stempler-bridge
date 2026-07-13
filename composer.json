@@ -3,6 +3,12 @@
     "type": "library",
     "description": "Spiral Framework: Stempler Adapter",
     "license": "MIT",
+    "funding": [
+        {
+            "type": "github",
+            "url": "https://github.com/sponsors/spiral"
+        }
+    ],
     "homepage": "https://spiral.dev",
     "support": {
         "issues": "https://github.com/spiral/framework/issues",
@@ -15,11 +21,11 @@
         },
         {
             "name": "Pavel Butchnev (butschster)",
-            "email": "pavel.buchnev@spiralscout.com"
+            "homepage": "https://github.com/butschster"
         },
         {
             "name": "Aleksei Gagarin (roxblnfk)",
-            "email": "alexey.gagarin@spiralscout.com"
+            "homepage": "https://github.com/roxblnfk"
         },
         {
             "name": "Maksim Smakouz (msmakouz)",
@@ -28,18 +34,19 @@
     ],
     "require": {
         "php": ">=8.1",
-        "spiral/stempler": "^3.13.1",
-        "spiral/files": "^3.13.1",
-        "spiral/config": "^3.13.1",
-        "spiral/router": "^3.13.1",
-        "spiral/views": "^3.13.1",
-        "spiral/core": "^3.13.1"
+        "spiral/stempler": "^3.18",
+        "spiral/files": "^3.18",
+        "spiral/config": "^3.18",
+        "spiral/router": "^3.18",
+        "spiral/views": "^3.18",
+        "spiral/core": "^3.18"
     },
     "require-dev": {
-        "spiral/boot": "^3.13.1",
-        "phpunit/phpunit": "^10.1",
-        "mockery/mockery": "^1.5",
-        "vimeo/psalm": "^5.9"
+        "phpunit/phpunit": "^10.5.41",
+        "spiral/boot": "^3.18",
+        "spiral/testing": "^2.12",
+        "mockery/mockery": "^1.6.12",
+        "vimeo/psalm": "^6.0"
     },
     "autoload": {
         "psr-4": {
@@ -53,7 +60,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "3.13.x-dev"
+            "dev-master": "3.18.x-dev"
         }
     },
     "config": {

@@ -4,33 +4,29 @@ declare(strict_types=1);
 
 namespace Spiral\Tests\Stempler;
 
+use Spiral\Testing\Attribute\TestScope;
 use Spiral\Views\Context\ValueDependency;
 use Spiral\Views\Exception\CompileException;
 use Spiral\Views\Exception\RenderException;
 use Spiral\Views\ViewContext;
 
-class EngineTest extends BaseTestCase
+#[TestScope("http")]
+final class EngineTest extends BaseTestCase
 {
     public function testList(): void
     {
         $views = $this->getStempler()->getLoader()->list();
 
-        $this->assertContains('default:test', $views);
-        $this->assertContains('other:test', $views);
+        self::assertContains('default:test', $views);
+        self::assertContains('other:test', $views);
     }
 
     public function testRender(): void
     {
         $s = $this->getStempler();
-        $this->assertSame(
-            'test',
-            $s->get('test', new ViewContext())->render([])
-        );
+        self::assertSame('test', $s->get('test', new ViewContext())->render([]));
 
-        $this->assertSame(
-            'other test',
-            $s->get('other:test', new ViewContext())->render([])
-        );
+        self::assertSame('other test', $s->get('other:test', new ViewContext())->render([]));
     }
 
     public function testRenderInContext(): void
@@ -40,10 +36,7 @@ class EngineTest extends BaseTestCase
 
         $s = $this->getStempler();
 
-        $this->assertSame(
-            'hello Anton of Test',
-            $s->get('other:ctx', $ctx)->render(['name' => 'Anton'])
-        );
+        self::assertSame('hello Anton of Test', $s->get('other:ctx', $ctx)->render(['name' => 'Anton']));
     }
 
     public function testRenderException(): void
@@ -52,11 +45,12 @@ class EngineTest extends BaseTestCase
 
         try {
             $s->get('echo', new ViewContext())->render();
+            $this->fail('Exception expected');
         } catch (RenderException $e) {
             $t = $e->getUserTrace()[0];
 
-            $this->assertSame(2, $t['line']);
-            $this->assertStringContainsString('echo.dark.php', $t['file']);
+            self::assertSame(2, $t['line']);
+            self::assertStringContainsString('echo.dark.php', (string) $t['file']);
         }
     }
 
@@ -66,15 +60,16 @@ class EngineTest extends BaseTestCase
 
         try {
             $s->get('other:echo-in', new ViewContext())->render();
+            $this->fail('Exception expected');
         } catch (RenderException $e) {
             $t = $e->getUserTrace();
-            $this->assertCount(2, $t);
+            self::assertCount(2, $t);
 
-            $this->assertSame(2, $t[0]['line']);
-            $this->assertStringContainsString('echo.dark.php', $t[0]['file']);
+            self::assertSame(2, $t[0]['line']);
+            self::assertStringContainsString('echo.dark.php', (string) $t[0]['file']);
 
-            $this->assertSame(3, $t[1]['line']);
-            $this->assertStringContainsString('echo-in.dark.php', $t[1]['file']);
+            self::assertSame(3, $t[1]['line']);
+            self::assertStringContainsString('echo-in.dark.php', (string) $t[1]['file']);
         }
     }
 
@@ -85,7 +80,7 @@ class EngineTest extends BaseTestCase
         try {
             $twig->get('other:bad', new ViewContext());
         } catch (CompileException $e) {
-            $this->assertStringContainsString('bad.dark.php', $e->getFile());
+            self::assertStringContainsString('bad.dark.php', $e->getFile());
         }
     }
 }
